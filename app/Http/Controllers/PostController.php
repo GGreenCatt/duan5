@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Carbon\Carbon;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -9,11 +9,24 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    // Hiển thị danh sách bài viết
+        // Hiển thị danh sách bài viết
     public function index()
     {
         $posts = Post::all();
-        return view('posts.index', compact('posts'));
+        $totalPosts = $posts->count();
+        $postsThisWeek = Post::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count();
+        $postsThisMonth = Post::whereMonth('created_at', Carbon::now()->month)->count();
+
+        // Dữ liệu cho biểu đồ
+        $months = collect(range(1, 12))->map(function ($month) {
+            return Carbon::create()->month($month)->format('F');
+        });
+
+        $monthlyData = $months->map(function ($month, $index) {
+            return Post::whereMonth('created_at', $index + 1)->count();
+        });
+
+        return view('posts.index', compact('posts', 'totalPosts', 'postsThisWeek', 'postsThisMonth', 'months', 'monthlyData'));
     }
 
     // Form tạo bài viết
