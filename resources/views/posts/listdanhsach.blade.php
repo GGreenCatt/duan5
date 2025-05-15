@@ -85,6 +85,11 @@
         display: inline-block;
         float: right;
     }
+        /* Ẩn nút sửa, xóa và xuất Excel nếu không phải admin */
+    .hide-if-user {
+        display: none !important;
+    }
+
 </style>
 
 <x-app-layout>
@@ -94,53 +99,69 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    @if (session('success'))
-                        <div class="bg-green-500 text-white p-4 mb-4 rounded-lg">
-                            {{ session('success') }}
-                        </div>
-                    @endif
+    <div class="{{ auth()->user()->role == 'User' ? 'role-user' : '' }}">
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                        @if (session('success'))
+                            <div class="bg-green-500 text-white p-4 mb-4 rounded-lg">
+                                {{ session('success') }}
+                            </div>
+                        @endif
 
-                    <div class="mt-8 overflow-x-auto">
-                        <h3 class="text-lg font-semibold mb-4">Danh sách bài viết</h3>
-                        <table id="posts-table" class="min-w-full text-sm">
-                            <thead class="bg-gray-100 dark:bg-gray-700">
-                                <tr>
-                                    <th>Chủ đề</th>
-                                    <th>Mô tả ngắn</th>
-                                    <th>Người đăng</th>
-                                    <th>Ngày đăng</th>
-                                    <th class="text-center">Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($posts as $post)
+                        <div class="mt-8 overflow-x-auto">
+                            <h3 class="text-lg font-semibold mb-4">Danh sách bài viết</h3>
+                            <table id="posts-table" class="min-w-full text-sm">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
                                     <tr>
-                                        <td>{{ $post->title }}</td>
-                                        <td>{{ Str::limit($post->short_description, 80) }}</td>
-                                        <td>{{ $post->user->name }}</td>
-                                        <td>{{ $post->created_at->format('d/m/Y H:i') }}</td>
-                                        <td class="flex justify-center space-x-3">
-                                            <a href="{{ route('posts.show', $post) }}" class="bg-green-500 text-white px-4 py-2 rounded">Xem</a>
-                                            <a href="{{ route('posts.edit', $post) }}" class="bg-yellow-500 text-white px-4 py-2 rounded">Sửa</a>
-                                            <form action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Xóa</button>
-                                            </form>
-                                        </td>
+                                        <th>Chủ đề</th>
+                                        <th>Mô tả ngắn</th>
+                                        <th>Người đăng</th>
+                                        <th>Ngày đăng</th>
+                                        <th class="text-center">Hành động</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($posts as $post)
+                                        <tr>
+                                            <td>{{ $post->title }}</td>
+                                            <td>{{ Str::limit($post->short_description, 80) }}</td>
+                                            <td>{{ $post->user->name }}</td>
+                                            <td>{{ $post->created_at->format('d/m/Y H:i') }}</td>
+                                            <td class="flex justify-center space-x-3">
+                                                <a href="{{ route('posts.show', $post) }}" class="bg-green-500 text-white px-4 py-2 rounded">Xem</a>
+                                                <a href="{{ route('posts.edit', $post) }}" class="bg-yellow-500 text-white px-4 py-2 rounded btn-edit">Sửa</a>
+                                                <form action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');" class="inline-block form-delete">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded btn-delete">Xóa</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- CSS ẩn nút cho role User -->
+    <style>
+        /* Nếu là role User thì ẩn nút Sửa và Xóa bằng visibility hidden để giữ layout */
+        .role-user .btn-edit,
+        .role-user .btn-delete {
+            visibility: hidden;
+        }
+
+        /* Ẩn nút xuất Excel */
+        .role-user .dt-buttons {
+            visibility: hidden;
+        }
+    </style>
 
     <!-- DataTables và Buttons -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
@@ -169,19 +190,20 @@
                     "previous": "Trước"
                 }
             },
-            dom: '<"top"lfB>rt<"bottom"ip><"clear">', // Đảm bảo nút 'Hiển thị tối đa' không bị mất
+            dom: '<"top"lfB>rt<"bottom"ip><"clear">',
             buttons: [
                 {
                     extend: 'excelHtml5',
                     text: '⬇️ Xuất Excel',
                     className: 'excel-button-custom',
                     exportOptions: {
-                        columns: [0, 1, 2, 3] // Chỉ xuất 4 cột đầu
+                        columns: [0, 1, 2, 3]
                     }
                 }
             ]
         });
     });
-</script>
+    </script>
 
 </x-app-layout>
+

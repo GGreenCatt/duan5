@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
@@ -17,15 +18,12 @@ use Illuminate\Support\Facades\Route;
 // Trang chủ
 Route::get('/', function () {
     return view('welcome');
-
 });
 
 // Trang dashboard cho người dùng đã đăng nhập
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard
-    Route::get('/posts/list', [PostController::class, 'list'])->name('posts.list');
-    Route::get('/dashboard', [PostController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     // Routes cho bài đăng
     Route::prefix('posts')->group(function () {
         Route::get('/', [PostController::class, 'index'])->name('posts.index');
@@ -36,6 +34,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
         Route::put('/{post}', [PostController::class, 'update'])->name('posts.update');
         Route::delete('/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+        Route::delete('/{post}/delete-banner', [PostController::class, 'deleteBanner'])->name('posts.deleteBanner');
+        Route::post('/{post}/delete-gallery', [PostController::class, 'deleteGallery'])->name('posts.deleteGallery');
     });
 
     // Routes cho trang chỉnh sửa và xóa hồ sơ người dùng
@@ -43,11 +43,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/listdanhsach', [PostController::class, 'listPosts'])->name('posts.list');
+    // Trang danh sách bài đăng
     Route::get('/listdanhsach', [PostController::class, 'listPosts'])->name('listdanhsach');
-    Route::delete('/posts/{post}/delete-banner', [PostController::class, 'deleteBanner'])->name('posts.deleteBanner');
-    Route::post('/posts/{post}/delete-gallery', [PostController::class, 'deleteGallery'])->name('posts.deleteGallery');
-
 });
 
 // Routes cho xác thực người dùng

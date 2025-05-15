@@ -48,23 +48,24 @@
                             <p class="text-gray-600 dark:text-gray-300">Không có ảnh trong bộ sưu tập.</p>
                         @endif
                     </div>
-
                     {{-- Hành động --}}
                     <div class="flex justify-end space-x-4 pt-4 border-t">
-                        <a href="{{ route('posts.edit', $post) }}"
-                        class="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-500 hover:text-white transition-all">
-                            ✏️ Chỉnh sửa
-                        </a>
-                        <form action="{{ route('posts.destroy', $post) }}" method="POST" class="inline-block">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                    class="px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-500 hover:text-white transition-all">
-                                🗑️ Xóa
-                            </button>
-                        </form>
+                        @if(auth()->user()->role !== 'User')
+                            <a href="{{ route('posts.edit', $post) }}"
+                            class="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-500 hover:text-white transition-all">
+                                ✏️ Chỉnh sửa
+                            </a>
+                            <form action="{{ route('posts.destroy', $post) }}" method="POST" class="inline-block">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-500 hover:text-white transition-all"
+                                        onclick="return confirm('Bạn có chắc muốn xóa bài viết này?');">
+                                    🗑️ Xóa
+                                </button>
+                            </form>
+                        @endif
                     </div>
-
                 </div>
             </div>
         </div>
