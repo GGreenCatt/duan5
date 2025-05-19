@@ -105,43 +105,46 @@
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         @if (session('success'))
-                            <div class="bg-green-500 text-white p-4 mb-4 rounded-lg">
-                                {{ session('success') }}
+                            <div id="success-message" class="bg-green-500 text-white p-4 mb-4 rounded-lg flex justify-between items-center">
+                                <span>{{ session('success') }}</span>
+                                <button onclick="document.getElementById('success-message').remove()" class="ml-4 font-bold">✖</button>
                             </div>
                         @endif
 
                         <div class="mt-8 overflow-x-auto">
                             <h3 class="text-lg font-semibold mb-4">Danh sách bài viết</h3>
                             <table id="posts-table" class="min-w-full text-sm">
-                                <thead class="bg-gray-100 dark:bg-gray-700">
+                            <thead class="bg-gray-100 dark:bg-gray-700">
+                                <tr>
+                                    <th>Chủ đề</th>
+                                    <th>Mô tả ngắn</th>
+                                    <th style="display: none;">Nội dung</th> <!-- Thêm cột Nội dung -->
+                                    <th>Người đăng</th>
+                                    <th>Ngày đăng</th>
+                                    <th class="text-center">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($posts as $post)
                                     <tr>
-                                        <th>Chủ đề</th>
-                                        <th>Mô tả ngắn</th>
-                                        <th>Người đăng</th>
-                                        <th>Ngày đăng</th>
-                                        <th class="text-center">Hành động</th>
+                                        <td>{{ $post->title }}</td>
+                                        <td>{{ Str::limit($post->short_description, 80) }}</td>
+                                        <td style="display: none">{{ Str::limit(strip_tags($post->content), 100) }}</td> <!-- Thêm nội dung bài viết -->
+                                        <td>{{ $post->user->name }}</td>
+                                        <td>{{ $post->created_at->format('d/m/Y H:i') }}</td>
+                                        <td class="flex justify-center space-x-3">
+                                            <a href="{{ route('posts.show', $post) }}" class="bg-green-400 text-white px-4 py-2 rounded">Xem</a>
+                                            <a href="{{ route('posts.edit', $post) }}" class="bg-yellow-400 text-white px-4 py-2 rounded btn-edit">Sửa</a>
+                                            <form action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');" class="inline-block form-delete">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded btn-delete">Xóa</button>
+                                            </form>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($posts as $post)
-                                        <tr>
-                                            <td>{{ $post->title }}</td>
-                                            <td>{{ Str::limit($post->short_description, 80) }}</td>
-                                            <td>{{ $post->user->name }}</td>
-                                            <td>{{ $post->created_at->format('d/m/Y H:i') }}</td>
-                                            <td class="flex justify-center space-x-3">
-                                                <a href="{{ route('posts.show', $post) }}" class="bg-green-500 text-white px-4 py-2 rounded">Xem</a>
-                                                <a href="{{ route('posts.edit', $post) }}" class="bg-yellow-500 text-white px-4 py-2 rounded btn-edit">Sửa</a>
-                                                <form action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');" class="inline-block form-delete">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded btn-delete">Xóa</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                @endforeach
+                            </tbody>
+                        </table>
                         </div>
                     </div>
                 </div>
@@ -173,6 +176,19 @@
     <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
 
     <script>
+        function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+}
+
+function decodeHtmlMultipleTimes(html, times = 2) {
+    let result = html;
+    for(let i = 0; i < times; i++) {
+        result = decodeHtml(result);
+    }
+    return result;
+}
     $(document).ready(function() {
         $('#posts-table').DataTable({
             "pageLength": 5,
@@ -197,7 +213,14 @@
                     text: '⬇️ Xuất Excel',
                     className: 'excel-button-custom',
                     exportOptions: {
-                        columns: [0, 1, 2, 3]
+                        columns: [0, 1, 2, 3, 4],
+                        format: {
+                            body: function(data, row, column, node) {
+                                let tmp = data.replace(/<\/?[^>]+(>|$)/g, "");
+                                let decoded = decodeHtmlMultipleTimes(tmp, 2);
+                                return decoded;
+                            }
+                        }
                     }
                 }
             ]

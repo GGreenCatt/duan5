@@ -57,23 +57,23 @@
                         @method('PUT')
 
                         <div class="mb-4">
-                            <label for="title" class="block text-sm font-medium text-white">Tiêu đề</label>
-                            <input type="text" id="title" name="title" class="mt-1 block w-full bg-gray-800 text-white" value="{{ old('title', $post->title) }}" required maxlength="200" />
+                            <label for="title" class="block text-sm font-medium text-white required">Tiêu đề</label>
+                            <input type="text" id="title" name="title" class="mt-1 block w-full bg-gray-800 text-white" value="{{ old('title', $post->title) }}" required maxlength="255" />
                         </div>
 
                         <div class="mb-4">
-                            <label for="short_description" class="block text-sm font-medium text-white">Mô tả ngắn</label>
-                            <textarea id="short_description" name="short_description" rows="4" class="mt-1 block w-full bg-gray-800 text-white" required maxlength="200">{{ old('short_description', $post->short_description) }}</textarea>
+                            <label for="short_description" class="block text-sm font-medium text-white required">Mô tả ngắn</label>
+                            <textarea id="short_description" name="short_description" rows="4" class="mt-1 block w-full bg-gray-800 text-white" required maxlength="1000">{{ old('short_description', $post->short_description) }}</textarea>
                         </div>
 
                         <div class="mb-4">
-                            <label for="content" class="block text-sm font-medium text-white">Nội dung</label>
-                            <textarea id="content" name="content" rows="10" class="mt-1 block w-full bg-gray-800 text-white" maxlength="500">{{ old('content', $post->content) }}</textarea>
+                            <label for="content" class="block text-sm font-medium text-white required">Nội dung</label>
+                            <textarea id="content" name="content" rows="10" class="mt-1 block w-full bg-gray-800 text-white" maxlength="3000">{{ old('content', $post->content) }}</textarea>
                         </div>
 
                         <!-- Phần Banner Ảnh -->
                         <div class="mb-4">
-                            <label for="banner_image" class="block text-sm font-medium text-white">Banner ảnh</label>
+                            <label for="banner_image" class="block text-sm font-medium text-white required">Banner ảnh</label>
                             <input type="file" id="banner_image" name="banner_image" class="mt-1 block w-full bg-gray-800 text-white" />
                             @if ($post->banner_image)
                                 <div class="mt-2 relative" style="width: 128px; height: 128px;">
@@ -85,7 +85,7 @@
 
                         <!-- Phần Thư viện ảnh -->
                         <div class="mb-4">
-                            <label for="gallery_images" class="block text-sm font-medium text-white">Ảnh thư viện</label>
+                            <label for="gallery_images" class="block text-sm font-medium text-white required">Ảnh thư viện</label>
                             <input type="file" id="gallery_images" name="gallery_images[]" class="mt-1 block w-full bg-gray-800 text-white" multiple />
                             @if ($post->gallery_images)
                                 <div class="mt-2 flex gap-2" id="gallery-container">
@@ -149,4 +149,11 @@
         }
     }
 </script>
+<style>
+    label.required::after {
+        content: " *";
+        color: red;
+        font-weight: bold;
+    }
+</style>
 </x-app-layout>

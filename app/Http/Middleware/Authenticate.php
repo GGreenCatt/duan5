@@ -14,4 +14,10 @@ class Authenticate extends Middleware
     {
         return $request->expectsJson() ? null : route('login');
     }
+    protected function unauthenticated($request, array $guards)
+{
+    throw \Illuminate\Validation\ValidationException::withMessages([
+        'password' => 'Mật khẩu bạn nhập không đúng.'
+    ]);
+}
 }

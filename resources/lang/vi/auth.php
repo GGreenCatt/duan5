@@ -1,0 +1,55 @@
+<?php
+
+return [
+    'accepted' => 'Trường :attribute phải được chấp nhận.',
+    'active_url' => 'Trường :attribute không phải là URL hợp lệ.',
+    'after' => 'Trường :attribute phải là ngày sau :date.',
+    'after_or_equal' => 'Trường :attribute phải là ngày sau hoặc bằng :date.',
+    'alpha' => 'Trường :attribute chỉ được chứa các chữ cái.',
+    'alpha_dash' => 'Trường :attribute chỉ được chứa chữ cái, số, dấu gạch ngang và gạch dưới.',
+    'alpha_num' => 'Trường :attribute chỉ được chứa chữ cái và số.',
+    'array' => 'Trường :attribute phải là một mảng.',
+    'before' => 'Trường :attribute phải là ngày trước :date.',
+    'before_or_equal' => 'Trường :attribute phải là ngày trước hoặc bằng :date.',
+    'between' => [
+        'numeric' => 'Trường :attribute phải nằm trong khoảng :min - :max.',
+        'file' => 'Dung lượng tập tin :attribute phải trong khoảng :min - :max KB.',
+        'string' => 'Trường :attribute phải trong khoảng :min - :max ký tự.',
+        'array' => 'Trường :attribute phải có từ :min - :max phần tử.',
+    ],
+    'boolean' => 'Trường :attribute phải là true hoặc false.',
+    'confirmed' => 'Xác nhận :attribute không khớp.',
+    'date' => 'Trường :attribute không phải là ngày hợp lệ.',
+    'date_format' => 'Trường :attribute không đúng định dạng :format.',
+    'different' => 'Trường :attribute và :other phải khác nhau.',
+    'digits' => 'Trường :attribute phải là :digits chữ số.',
+    'digits_between' => 'Trường :attribute phải có từ :min đến :max chữ số.',
+    'email' => 'Trường :attribute phải là một địa chỉ email hợp lệ.',
+    'exists' => 'Giá trị đã chọn trong trường :attribute không hợp lệ.',
+    'filled' => 'Trường :attribute là bắt buộc.',
+    'image' => 'Trường :attribute phải là một hình ảnh.',
+    'in' => 'Giá trị đã chọn trong trường :attribute không hợp lệ.',
+    'integer' => 'Trường :attribute phải là số nguyên.',
+    'max' => [
+        'numeric' => 'Trường :attribute không được lớn hơn :max.',
+        'file' => 'Dung lượng tập tin :attribute không được lớn hơn :max KB.',
+        'string' => 'Trường :attribute không được lớn hơn :max ký tự.',
+        'array' => 'Trường :attribute không được lớn hơn :max phần tử.',
+    ],
+    'min' => [
+        'numeric' => 'Trường :attribute phải tối thiểu là :min.',
+        'file' => 'Dung lượng tập tin :attribute phải tối thiểu là :min KB.',
+        'string' => 'Trường :attribute phải có ít nhất :min ký tự.',
+        'array' => 'Trường :attribute phải có ít nhất :min phần tử.',
+    ],
+    'required' => 'Trường :attribute là bắt buộc.',
+    'unique' => 'Trường :attribute đã tồn tại.',
+    'password' => 'Mật khẩu không đúng.',
+
+    'custom' => [
+        'password' => [
+            'required' => 'Bạn chưa nhập mật khẩu.',
+            'min' => 'Mật khẩu phải có ít nhất :min ký tự.',
+        ],
+    ],
+];

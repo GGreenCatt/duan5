@@ -40,11 +40,13 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'short_description' => 'required|string|max:500',
-            'content' => 'required|string',
-            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'title' => ['required', 'string', 'regex:/^(?!\s+$).*/', 'max:100'],
+            'short_description' => ['required', 'string', 'regex:/^(?!\s+$).*/', 'max:200'],
+            'content' => ['required', 'string', 'regex:/^(?!\s+$).*/', 'max:1000'],
+        ], [
+            'title.max' => 'Tiêu đề không được vượt quá 100 ký tự.',
+            'short_description.max' => 'Mô tả ngắn không được vượt quá 200 ký tự.',
+            'content.max' => 'Nội dung không được vượt quá 1000 ký tự.',
         ]);
 
         // Lưu banner ảnh

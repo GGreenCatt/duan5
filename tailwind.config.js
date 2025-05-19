@@ -14,8 +14,17 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                dark: {
+                    background: '#18181b', // Nền tối mặc định
+                    text: '#f4f4f5',       // Màu chữ sáng
+                    card: '#27272a',       // Màu nền card
+                    border: '#3f3f46',     // Màu đường viền
+                },
+            },
         },
     },
 
+    darkMode: 'class', // Kích hoạt Dark Mode theo class (mặc định)
     plugins: [forms],
 };

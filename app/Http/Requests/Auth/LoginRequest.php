@@ -82,4 +82,13 @@ class LoginRequest extends FormRequest
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
     }
+    public function messages()
+{
+    return [
+        'password.required' => 'Vui lòng nhập mật khẩu.',
+        'password.min' => 'Mật khẩu phải có ít nhất :min ký tự.',
+        'email.required' => 'Vui lòng nhập địa chỉ email.',
+        'email.email' => 'Địa chỉ email không đúng định dạng.',
+    ];
+}
 }
