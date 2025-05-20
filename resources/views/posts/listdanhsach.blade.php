@@ -135,7 +135,7 @@
                                         <td class="flex justify-center space-x-3">
                                             <a href="{{ route('posts.show', $post) }}" class="bg-green-400 text-white px-4 py-2 rounded">Xem</a>
                                             <a href="{{ route('posts.edit', $post) }}" class="bg-yellow-400 text-white px-4 py-2 rounded btn-edit">Sửa</a>
-                                            <form action="{{ route('posts.destroy', $post) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');" class="inline-block form-delete">
+                                            <form action="{{ route('posts.destroy', $post) }}" method="POST" class="inline-block form-delete">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded btn-delete">Xóa</button>
@@ -226,6 +226,30 @@ function decodeHtmlMultipleTimes(html, times = 2) {
             ]
         });
     });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Ngăn submit ngay
+
+                Swal.fire({
+                    title: 'Bạn có chắc muốn xóa?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Có, xóa nó!',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Tiếp tục submit nếu xác nhận
+                    }
+                });
+            });
+        });
     </script>
 
 </x-app-layout>

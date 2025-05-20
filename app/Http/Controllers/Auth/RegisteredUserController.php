@@ -28,7 +28,7 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+public function store(Request $request): RedirectResponse
     {
         $request->merge([
             'name' => strip_tags($request->name),
@@ -51,18 +51,19 @@ class RegisteredUserController extends Controller
             'email.regex' => 'Email chỉ được chứa các ký tự a-z, 0-9, dấu chấm (.) và phải kết thúc bằng một trong các đuôi: @gmail.com, @edu.com, @yahoo.com, @outlook.com.',
         ]);
 
-
         $user = User::create([
             'name' => htmlspecialchars($request->name, ENT_QUOTES, 'UTF-8'),
             'email' => htmlspecialchars($request->email, ENT_QUOTES, 'UTF-8'),
             'password' => Hash::make($request->password),
-            'role' => 'User', // Auto set role as User
+            'role' => 'User',
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
+        // Không đăng nhập tự động
+        // Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        // Chuyển về trang chủ với thông báo
+        return redirect('/')->with('success', 'Đăng ký thành công');
     }
 }

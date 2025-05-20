@@ -1,3 +1,16 @@
+@if (session('success') === 'Đăng nhập thành công')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'success',
+                title: 'Đăng nhập thành công!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        });
+    </script>
+@endif
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">

@@ -14,10 +14,16 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     @if (session('success'))
-                        <div id="success-message" class="bg-green-500 text-white p-4 mb-4 rounded-lg flex justify-between items-center">
-                            <span>{{ session('success') }}</span>
-                            <button onclick="document.getElementById('success-message').remove()" class="ml-4 font-bold">✖</button>
-                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Thành công!',
+                                    text: '{{ session('success') }}',
+                                    confirmButtonText: 'OK'
+                                });
+                            });
+                        </script>
                     @endif
 
                     <form id="create-post-form" method="POST" action="{{ route('posts.store') }}" enctype="multipart/form-data" onsubmit="return validatePostForm(event)">
@@ -60,7 +66,7 @@
             </div>
         </div>
     </div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     CKEDITOR.replace('content');
 
@@ -82,18 +88,26 @@
         const files = event.target.files;
 
         // Kiểm tra số lượng ảnh và dung lượng
+        const errorMessage = document.getElementById('gallery_images-error');
+
         if (files.length < 2 || files.length > 5) {
-            alert("Bạn phải chọn ít nhất 2 ảnh và không quá 5 ảnh.");
+            errorMessage.style.display = 'block';
+            errorMessage.innerText = "*(Bạn phải chọn ít nhất 2 ảnh và không quá 5 ảnh.)";
             event.target.value = ""; // Xóa lựa chọn
             return;
+        } else {
+            errorMessage.style.display = 'none';
         }
 
+
         for (let i = 0; i < files.length; i++) {
-            if (files[i].size > 2 * 1024 * 1024) { // 2MB
-                alert("Mỗi ảnh phải có kích thước không quá 2MB.");
+            if (files[i].size > 2 * 1024 * 1024) {
+                errorMessage.style.display = 'block';
+                errorMessage.innerText = "*(Mỗi ảnh trong thư viện phải có kích thước không quá 2MB.)";
                 event.target.value = ""; // Xóa lựa chọn
                 return;
             }
+
 
             const reader = new FileReader();
             reader.onload = function() {
@@ -110,15 +124,22 @@
     document.querySelector("form").addEventListener("submit", function(event) {
         const galleryImages = document.getElementById('gallery_images').files;
 
+        const galleryError = document.getElementById('gallery_images-error');
+
         if (galleryImages.length < 2 || galleryImages.length > 5) {
-            alert("Bạn phải chọn ít nhất 2 ảnh và không quá 5 ảnh.");
+            galleryError.style.display = 'block';
+            galleryError.innerText = "*(Bạn phải chọn ít nhất 2 ảnh và không quá 5 ảnh.)";
             event.preventDefault();
             return;
+        } else {
+            galleryError.style.display = 'none';
         }
 
+
         for (let i = 0; i < galleryImages.length; i++) {
-            if (galleryImages[i].size > 2 * 1024 * 1024) { // 2MB
-                alert("Mỗi ảnh phải có kích thước không quá 2MB.");
+            if (galleryImages[i].size > 2 * 1024 * 1024) {
+                galleryError.style.display = 'block';
+                galleryError.innerText = "*(Mỗi ảnh trong thư viện phải có kích thước không quá 2MB.)";
                 event.preventDefault();
                 return;
             }
@@ -132,7 +153,7 @@
         const inputs = document.querySelectorAll("#create-post-form input[type='text'], #create-post-form textarea");
         for (const input of inputs) {
             if (input.value.trim() === "") {
-                alert("Không được nhập chỉ khoảng trắng hoặc bỏ trống các trường bắt buộc.");
+                alert("*(Không được nhập chỉ khoảng trắng hoặc bỏ trống các trường bắt buộc.)");
                 input.focus();
                 return false;
             }
@@ -146,18 +167,108 @@
         const errorMessage = document.getElementById(`${element.id}-error`);
         if (element.value.length >= maxLength) {
             errorMessage.style.display = "block";
-            errorMessage.innerText = `Bạn đã nhập tối đa ${maxLength} ký tự.`;
+            errorMessage.innerText = `Bạn chỉ được nhập tối đa ${maxLength} ký tự.`;
         } else {
             errorMessage.style.display = "none";
         }
     }
 
 </script>
+
+<script>
+    let isFormSubmitted = false;
+    let isChanged = false;
+
+    // Ghi nhận thay đổi
+    document.querySelectorAll('#create-post-form input, #create-post-form textarea').forEach(input => {
+        input.addEventListener('input', () => isChanged = true);
+        input.addEventListener('change', () => isChanged = true);
+    });
+
+    // Khi nhấn nút đăng bài: hiện hộp thoại xác nhận
+    document.getElementById("create-post-form").addEventListener("submit", function (event) {
+        if (isFormSubmitted) return;
+
+        event.preventDefault();
+
+        Swal.fire({
+            title: 'Bạn có chắc muốn đăng bài này không?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Có',
+            cancelButtonText: 'Không'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                isFormSubmitted = true;
+                window.removeEventListener("beforeunload", handleBeforeUnload); // bỏ chặn reload
+                this.submit();
+            }
+        });
+    });
+
+    // ✅ Hàm xử lý trước khi rời trang (dành cho reload/tab close)
+    function handleBeforeUnload(e) {
+        if (isChanged && !isFormSubmitted) {
+            e.preventDefault();
+            e.returnValue = ''; // cần cho Chrome
+        }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // ✅ Xử lý khi người dùng click vào link hoặc nút "Back"
+    document.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", function (e) {
+            if (isChanged && !isFormSubmitted) {
+                e.preventDefault();
+                Swal.fire({
+                    title: "Xác nhận bỏ bài đăng này?",
+                    text: "Mọi nội dung sẽ bị mất nếu bạn rời khỏi trang.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Có",
+                    cancelButtonText: "Không"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.removeEventListener("beforeunload", handleBeforeUnload);
+                        window.location.href = link.href;
+                    }
+                });
+            }
+        });
+    });
+
+    // ✅ Xử lý nút Back (popstate)
+    history.pushState(null, null, location.href); // để bắt nút Back
+    window.addEventListener("popstate", function (e) {
+        if (isChanged && !isFormSubmitted) {
+            Swal.fire({
+                title: "Xác nhận bỏ bài đăng này?",
+                text: "Mọi nội dung sẽ bị mất nếu bạn rời khỏi trang.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Có",
+                cancelButtonText: "Không"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.removeEventListener("beforeunload", handleBeforeUnload);
+                    history.back();
+                } else {
+                    history.pushState(null, null, location.href); // giữ lại trang
+                }
+            });
+        } else {
+            history.back();
+        }
+    });
+</script>
+
 <style>
     label.required::after {
         content: " *(Bắt buộc)";
         color: red;
-        font-weight: bold;
+        font-size: smaller;
+        font-weight: 200;
     }
 </style>
 
