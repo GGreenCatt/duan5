@@ -5,66 +5,81 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6 md:py-12"> {{-- Giảm padding top/bottom trên mobile --}}
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 px-4"> {{-- Thêm padding ngang mặc định cho mobile --}}
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg shadow-lg">
-                <div class="p-8 text-gray-900 dark:text-gray-100 space-y-8">
+                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100 space-y-6 md:space-y-8">
 
                     {{-- Tiêu đề bài đăng --}}
-                    <div class="border-b pb-4">
-                        <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">Chủ đề: {{ $post->title }}</h1>
-                        <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center space-x-4">
+                    <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
+                        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                            Tiêu đề: {{ $post->title }}
+                        </h1>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
                             <span>Đăng bởi: <span class="font-medium">{{ $post->user->name ?? 'Ẩn danh' }}</span></span>
-                            <span style="margin-left:15px ">Ngày đăng: <span class="font-medium">{{ $post->created_at->format('d/m/Y') }}</span></span>
+                            <span>Ngày đăng: <span class="font-medium">{{ $post->created_at->format('d/m/Y H:i') }}</span></span> {{-- Thêm H:i cho chi tiết --}}
                         </div>
                     </div>
 
                     {{-- Ảnh banner --}}
                     @if ($post->banner_image)
-                        <div class="flex justify-center">
-                            <img src="{{ asset('storage/' . $post->banner_image) }}" alt="Banner" class="w-2/3 max-w-lg h-auto object-contain rounded-lg shadow-md">
+                        <div class="flex justify-center my-4 md:my-6">
+                            <img src="{{ asset('storage/' . $post->banner_image) }}" alt="Banner Image"
+                                 class="w-full md:w-2/3 lg:max-w-2xl h-auto object-contain rounded-lg shadow-md">
+                                 {{-- w-full trên mobile, w-2/3 trên md, giới hạn max-w trên lg --}}
                         </div>
                     @endif
 
                     {{-- Nội dung bài đăng --}}
-                    <div class="prose dark:prose-invert max-w-none border-b pb-4">
+                    {{-- Tailwind prose class đã khá responsive. Đảm bảo nó không bị overflow. --}}
+                    <div class="prose dark:prose-invert max-w-none prose-sm sm:prose-base lg:prose-lg xl:prose-xl break-words border-b border-gray-200 dark:border-gray-700 pb-4">
                         {!! $post->content !!}
                     </div>
 
                     {{-- Bộ sưu tập ảnh --}}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Bộ sưu tập ảnh</h3>
-                        @if (!empty($galleryImages) && count($galleryImages) > 0)
-                            <div class="flex flex-wrap gap-4">
+                    @if (!empty($galleryImages) && count($galleryImages) > 0)
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-gray-900 dark:text-gray-100">Bộ sưu tập ảnh</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
                                 @foreach ($galleryImages as $image)
-                                    <div class="relative">
+                                    <div class="relative aspect-square"> {{-- aspect-square để giữ tỷ lệ ảnh vuông, hoặc bỏ nếu muốn ảnh tự do --}}
                                         <a href="{{ asset('storage/' . $image) }}" data-lightbox="gallery" data-title="Hình ảnh trong thư viện">
-                                            <img src="{{ asset('storage/' . $image) }}" alt="Gallery Image" class="gallery-image w-auto h-32 max-h-32 object-contain rounded-lg shadow-md cursor-pointer">
+                                            <img src="{{ asset('storage/' . $image) }}" alt="Gallery Image"
+                                                 class="gallery-image w-full h-full object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity">
+                                                 {{-- object-cover để lấp đầy, object-contain nếu muốn thấy toàn bộ ảnh --}}
                                         </a>
                                     </div>
                                 @endforeach
                             </div>
-                        @else
+                        </div>
+                    @else
+                         <div>
+                            <h3 class="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-gray-900 dark:text-gray-100">Bộ sưu tập ảnh</h3>
                             <p class="text-gray-600 dark:text-gray-300">Không có ảnh trong bộ sưu tập.</p>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
+
                     {{-- Hành động --}}
-                    <div class="flex justify-end space-x-4 pt-4 border-t">
-                        @if(auth()->user()->role !== 'User')
+                    <div class="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        @if(auth()->check() && auth()->user()->role !== 'User') {{-- Thêm auth()->check() cho an toàn --}}
                             <a href="{{ route('posts.edit', $post) }}"
-                            class="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-500 hover:text-white transition-all">
+                            class="w-full sm:w-auto text-center px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-500 hover:text-white transition-all">
                                 ✏️ Chỉnh sửa
                             </a>
-                            <form action="{{ route('posts.destroy', $post) }}" method="POST" class="inline-block">
+                            <form action="{{ route('posts.destroy', $post) }}" method="POST" class="w-full sm:w-auto">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
-                                        class="px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-500 hover:text-white transition-all"
-                                        onclick="return confirm('Bạn có chắc muốn xóa bài viết này?');">
+                                        class="w-full sm:w-auto text-center px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-500 hover:text-white transition-all"
+                                        onclick="return confirmDelete(event);">
                                     🗑️ Xóa
                                 </button>
                             </form>
                         @endif
+                         <a href="{{ url()->previous() }}"
+                           class="w-full sm:w-auto text-center px-4 py-2 border border-gray-400 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+                            ⬅️ Quay lại
+                        </a>
                     </div>
                 </div>
             </div>
@@ -74,17 +89,61 @@
     <!-- Thêm thư viện Lightbox -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox-plus-jquery.min.js"></script>
+    {{-- SweetAlert cho confirm xóa --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     <style>
-        .gallery-image {
-            height: 8rem;
-            width: auto;
-            max-height: 8rem;
-            object-fit: contain;
+        /* CSS tùy chỉnh nếu cần, Tailwind thường đủ */
+        .prose h1, .prose h2, .prose h3 { /* Đảm bảo tiêu đề trong prose cũng có màu dark mode */
+            color: inherit;
         }
-        .prose {
-            font-size: 1.1rem;
-            line-height: 1.7;
+        .prose img { /* Đảm bảo ảnh trong prose không bị tràn */
+            max-width: 100%;
+            height: auto;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 0.5rem; /* rounded-lg */
+        }
+        /* Lightbox options */
+        .lightboxOverlay {
+            background-color: rgba(0, 0, 0, 0.85) !important;
         }
     </style>
+
+    <script>
+        // Khởi tạo lightbox với tùy chọn (nếu cần)
+        lightbox.option({
+          'resizeDuration': 200,
+          'wrapAround': true,
+          'fadeDuration': 300
+        });
+
+        // Hàm confirm xóa với SweetAlert
+        function confirmDelete(event) {
+            event.preventDefault(); // Ngăn form submit ngay
+            const form = event.target.closest('form'); // Lấy form cha của button
+
+            Swal.fire({
+                title: 'Bạn có chắc muốn xóa?',
+                text: "Hành động này không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Có, xóa nó!',
+                cancelButtonText: 'Hủy',
+                customClass: { // Thêm class cho dark mode nếu cần
+                    popup: 'dark:bg-gray-800 dark:text-gray-200',
+                    title: 'dark:text-gray-100',
+                    htmlContainer: 'dark:text-gray-300'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // Tiếp tục submit nếu xác nhận
+                }
+            });
+            return false; // Ngăn chặn hành động mặc định của onclick
+        }
+    </script>
 </x-app-layout>

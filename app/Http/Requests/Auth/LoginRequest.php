@@ -27,10 +27,22 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/', // định dạng email
+                'not_regex:/\s{2,}/' // tránh khoảng trắng lớn
+            ],
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:50',
+            ],
         ];
     }
+
 
     /**
      * Attempt to authenticate the request's credentials.
@@ -82,13 +94,18 @@ class LoginRequest extends FormRequest
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
     }
-    public function messages()
-{
-    return [
-        'password.required' => 'Vui lòng nhập mật khẩu.',
-        'password.min' => 'Mật khẩu phải có ít nhất :min ký tự.',
-        'email.required' => 'Vui lòng nhập địa chỉ email.',
-        'email.email' => 'Địa chỉ email không đúng định dạng.',
-    ];
-}
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'Vui lòng nhập địa chỉ email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.max' => 'Email không được vượt quá 255 ký tự.',
+            'email.regex' => 'Email không hợp lệ.',
+            'email.not_regex' => 'Email chứa khoảng trắng không hợp lệ.',
+
+            'password.required' => 'Vui lòng nhập mật khẩu.',
+            'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự.',
+            'password.max' => 'Mật khẩu không được vượt quá 50 ký tự.',
+        ];
+    }
 }

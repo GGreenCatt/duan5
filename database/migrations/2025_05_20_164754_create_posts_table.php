@@ -6,26 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
+
+            // Liên kết với users và categories
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+
+            // Nội dung bài viết
             $table->string('title');
             $table->text('short_description');
             $table->longText('content');
+            $table->string('author')->nullable(); // tên tác giả nếu cần lưu riêng
+
+            // Ảnh
             $table->string('banner_image')->nullable();
             $table->json('gallery_images')->nullable();
+
             $table->timestamps();
         });
-            }
+    }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('posts');

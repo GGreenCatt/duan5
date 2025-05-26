@@ -12,6 +12,7 @@ class Post extends Model
     // Các trường có thể mass assignable
     protected $fillable = [
         'user_id',
+        'category_id',           // Liên kết danh mục
         'title',
         'short_description',
         'content',
@@ -19,16 +20,24 @@ class Post extends Model
         'gallery_images',
     ];
 
-    // Các trường sẽ được chuyển đổi sang kiểu dữ liệu khác, ví dụ như mảng cho trường gallery_images
+    // Chuyển đổi kiểu dữ liệu cho các trường nhất định
     protected $casts = [
-        'gallery_images' => 'array', // Định dạng gallery_images là mảng
+        'gallery_images' => 'array', // Tự động cast JSON thành mảng
     ];
 
     /**
-     * Quan hệ với User (Mỗi bài viết thuộc về một người dùng)
+     * Mỗi bài viết thuộc về một người dùng (tác giả)
      */
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Mỗi bài viết thuộc về một danh mục
+     */
+    public function category()
+    {
+            return $this->belongsTo(Category::class);;
     }
 }
