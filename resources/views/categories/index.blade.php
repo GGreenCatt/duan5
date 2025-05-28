@@ -64,12 +64,18 @@
                 @endif
             </td>
             <td class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
-                <a href="{{ route('posts.listdanhsach', ['category_id' => $cat->id]) }}" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2">Xem bài viết</a>
-                <a href="{{ route('categories.edit', $cat->id) }}" class="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 mr-2">Sửa</a>
+                <a href="{{ route('posts.listdanhsach', ['category_id' => $cat->id]) }}" class="bg-green-500 text-black px-3 py-2 rounded hover:bg-green-600 mr-2" title="Xem bài viết">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="{{ route('categories.edit', $cat->id) }}" class="bg-yellow-500 text-black px-3 py-2 rounded hover:bg-yellow-500 hover:text-black mr-2" title="Sửa danh mục">
+                    <i class="fas fa-edit"></i>
+                </a>
                 <form action="{{ route('categories.destroy', $cat->id) }}" method="POST" style="display:inline;" class="delete-category-form">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Xoá</button>
+                    <button type="submit" class="bg-red-500 text-black px-3 py-2 rounded hover:bg-red-600" title="Xoá danh mục">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </form>
             </td>
         </tr>
@@ -164,4 +170,5 @@
             });
         });
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </x-app-layout>

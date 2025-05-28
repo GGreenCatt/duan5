@@ -319,7 +319,7 @@
             buttons: [ // Cấu hình các nút, bao gồm nút Excel
                 {
                     extend: 'excelHtml5',
-                    text: 'Xuất Excel',
+                    text: 'Xuất Excelp6l;',
                     className: 'excel-button-custom dt-button', // Thêm class tùy chỉnh nếu cần
                     action: function ( e, dt, node, config ) {
                         // Chuyển hướng đến route export của bạn
