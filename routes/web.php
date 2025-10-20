@@ -48,7 +48,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
+    // Hiển thị các bài viết thuộc một danh mục cụ thể
+    Route::get('/posts/category/{category}', [App\Http\Controllers\PostController::class, 'postsByCategory'])->name('posts.by_category');
     Route::get('/listdanhsach', [PostController::class, 'listPosts'])->name('posts.listdanhsach'); // Giữ nguyên route này nếu bạn vẫn dùng
 });
 

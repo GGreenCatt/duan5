@@ -319,4 +319,32 @@ class PostController extends Controller
         }
         return Excel::download(new PostsExport, 'danh_sach_bai_dang.xlsx');
     }
+
+public function listdanhsach()
+{
+    $posts = Post::with('user', 'category.parent')->latest()->get();
+    $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get();
+    
+    // ✨ Quan trọng: Lấy danh sách phẳng tất cả các danh mục con
+    $childCategories = Category::whereNotNull('parent_id')->orderBy('name')->get(); 
+    
+    return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories'));
+}
+// Trong tệp app/Http/Controllers/PostController.php
+
+public function postsByCategory(Category $category)
+{
+    $categoryIds = $category->children()->pluck('id')->push($category->id);
+
+    $posts = Post::whereIn('category_id', $categoryIds)
+                 ->with('user', 'category.parent') // Eager load thêm parent
+                 ->latest()
+                 ->get();
+    
+    // Lấy thêm dữ liệu danh mục cho bộ lọc
+    $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get();
+    $childCategories = Category::whereNotNull('parent_id')->orderBy('name')->get()->groupBy('parent_id');
+
+    return view('posts.listdanhsach', compact('posts', 'category', 'parentCategories', 'childCategories'));
+}
 }
