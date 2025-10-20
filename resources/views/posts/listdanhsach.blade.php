@@ -279,189 +279,126 @@
 
 
     <script>
-        // Hàm tiện ích để loại bỏ thẻ HTML, dùng cho DataTables render
-        function stripHtmlTags(html) {
-            if (typeof html !== 'string') return '';
-            return html.replace(/<\/?[^>]+(>|$)/g, "");
-        }
+    // ✨ SCRIPT ĐÃ ĐƯỢC TỐI ƯU HÓA HOÀN TOÀN ĐỂ CẢI THIỆN HIỆU NĂNG ✨
 
-    $(document).ready(function() {
-        const table = $('#posts-table').DataTable({
-            "pageLength": 5,
-            "language": {
-                "lengthMenu": "Hiển thị _MENU_ bài viết mỗi trang",
-                "zeroRecords": "Không tìm thấy bài viết nào",
-                "info": "Hiển thị trang _PAGE_ trên _PAGES_",
-                "infoEmpty": "Không có bài viết nào",
-                "infoFiltered": "(lọc từ _MAX_ bài viết)",
-                "search": "Tìm kiếm:",
-                "paginate": {
-                    "first": "Đầu",
-                    "last": "Cuối",
-                    "next": "Tiếp",
-                    "previous": "Trước"
-                },
-                "responsive": { // Ngôn ngữ cho nút responsive (nếu cần)
-                    "details": {
-                        "display": $.fn.dataTable.Responsive.display.modal( {
-                            header: function ( row ) {
-                                var data = row.data();
-                                return 'Chi tiết cho '+data[0]; // Giả sử cột đầu là tiêu đề
-                            }
-                        } ),
-                        "renderer": $.fn.dataTable.Responsive.renderer.tableAll( {
-                            tableClass: 'table' // class cho bảng con
-                        } )
-                    }
-                }
-            },
-            responsive: true, // KÍCH HOẠT RESPONSIVE
-            buttons: [ // Cấu hình các nút, bao gồm nút Excel
-                {
-                    extend: 'excelHtml5',
-                    text: 'Xuất Excel',
-                    className: 'excel-button-custom dt-button', // Thêm class tùy chỉnh nếu cần
-                    action: function ( e, dt, node, config ) {
-                        // Chuyển hướng đến route export của bạn
-                        window.location.href = "{{ route('posts.export') }}";
-                    }
-                }
-            ],
-            columnDefs: [ // Có thể định nghĩa độ ưu tiên cho cột nào ẩn trước
-                { responsivePriority: 1, targets: 0 }, // Chủ đề
-                { responsivePriority: 2, targets: 6 }, // Hành động
-                { responsivePriority: 3, targets: 1 }, // Mô tả
-                { responsivePriority: 4, targets: 3 }, // Danh mục
-                { responsivePriority: 5, targets: 4 }, // Người đăng
-                { responsivePriority: 6, targets: 5 }, // Ngày đăng
-                {
-                    responsivePriority: 10001,
-                    targets: 2, // Index của cột "Nội dung"
-                    render: function ( data, type, row ) {
-                        // Khi hiển thị trong bảng (display) hoặc lọc (filter), loại bỏ HTML và giới hạn ký tự.
-                        // Cho các mục đích khác (như sort, type, hoặc quan trọng là khi EXPORT), trả về dữ liệu gốc.
-                        return (type === 'display' || type === 'filter') ? stripHtmlTags(data).substring(0, 100) + '...' : data;
-                    }
-                }
-            ],
-            dom: '<"top"lfB>rt<"bottom"ip><"clear">', // 'B' là Buttons, 'l' là length, 'f' là filter
-        });
+// Truyền dữ liệu danh mục con từ PHP sang JS một cách an toàn
+const allChildCategories = @json($childCategories);
 
-        // Cập nhật danh mục con khi chọn danh mục cha
-        $('#parent-category-filter').on('change', function() {
-            const parentId = $(this).val();
-            const childSelect = $('#child-category-filter');
-            childSelect.empty().append('<option value="">-- Tất cả --</option>');
+// Hàm tiện ích để loại bỏ thẻ HTML
+function stripHtmlTags(html) {
+    if (typeof html !== 'string') return '';
+    return html.replace(/<\/?[^>]+(>|$)/g, "");
+}
 
-            if (parentId !== "") {
-                const filteredChildren = allChildCategories.filter(cat => cat.parent_id == parentId);
-                filteredChildren.forEach(cat => {
-                    childSelect.append(`<option value="${cat.id}">${cat.name}</option>`);
-                });
-            }
-
-            // Kích hoạt lại lọc
-            $('#child-category-filter').val('');
-            filterPosts();
-        });
-
-        // Khi chọn danh mục con
-        $('#child-category-filter').on('change', function() {
-            filterPosts();
-        });
-
-        // Hàm lọc bài viết
-        function filterPosts() {
-            const parentId = $('#parent-category-filter').val();
-            const childId = $('#child-category-filter').val();
-            let searchTerm = '';
-
-            const parentCategory = $('#parent-category-filter option:selected').text();
-            const childCategory = $('#child-category-filter option:selected').text();
-
-            table.column(3).search('').draw(); // Reset trước
-
-            if (childId && childId !== "" && childCategory !== "-- Tất cả --") {
-                // Tìm chính xác theo "Cha > Con"
-                searchTerm = parentCategory.trim() + ' → ' + childCategory.trim();
-                table.column(3).search('^' + $.fn.dataTable.util.escapeRegex(searchTerm) + '$', true, false).draw();
-            } else if (parentId && parentId !== "" && parentCategory !== "-- Tất cả --") {
-                // Tìm tất cả bài viết có danh mục cha là...
-                // Chúng ta sẽ tìm kiếm tất cả các dòng BẮT ĐẦU BẰNG tên danh mục cha.
-                const parentNameEscaped = $.fn.dataTable.util.escapeRegex(parentCategory.trim());
-                searchTerm = `^${parentNameEscaped}`; // Tìm các dòng bắt đầu bằng tên danh mục cha
-                table.column(3).search(searchTerm, true, false).draw();
-            } else {
-                table.column(3).search('').draw(); // reset nếu không có gì
-            }
-        }
-    });
-    // Tự động lọc khi trang tải nếu có category_id trong URL
-    $(document).ready(function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const categoryIdFromUrl = urlParams.get('category_id');
-
-        if (categoryIdFromUrl) {
-            // Tìm xem categoryIdFromUrl là cha hay con
-            const isParent = $('#parent-category-filter option[value="' + categoryIdFromUrl + '"]').length > 0;
-            const isChild = allChildCategories.some(cat => cat.id == categoryIdFromUrl);
-
-            if (isChild) {
-                const childCategory = allChildCategories.find(cat => cat.id == categoryIdFromUrl);
-                if (childCategory && childCategory.parent_id) {
-                    $('#parent-category-filter').val(childCategory.parent_id).trigger('change'); // Chọn cha và trigger change để load con
-                    // Đợi một chút để danh sách con được load rồi mới chọn
-                    setTimeout(() => {
-                        $('#child-category-filter').val(categoryIdFromUrl).trigger('change'); // Chọn con và trigger change để lọc
-                    }, 100); // 100ms có thể cần điều chỉnh
-                }
-            } else if (isParent) {
-                $('#parent-category-filter').val(categoryIdFromUrl).trigger('change'); // Chọn cha và trigger change để lọc
-            }
-        }
-    });
-
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        document.querySelectorAll('.form-delete').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault(); // Ngăn submit ngay
-
-                Swal.fire({
-                    title: 'Bạn có chắc muốn xóa?',
-                    text: "Hành động này không thể hoàn tác!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Có, xóa nó!',
-                    cancelButtonText: 'Hủy'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit(); // Tiếp tục submit nếu xác nhận
-                    }
-                });
-            });
-        });
-        window.addEventListener('pageshow', function(event) {
-    if (event.persisted) {
-        // Trang load lại từ cache, không hiện thông báo
-        return;
+$(document).ready(function() {
+    // 1. ✨ TỐI ƯU: Hàm Debounce để trì hoãn việc thực thi, giảm INP
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
     }
-    @if (session('success'))
-    Swal.fire({
-        icon: 'success',
-        title: '{{ session('success') }}',
-        showConfirmButton: false,
-        timer: 1500
+
+    // 2. Khởi tạo DataTables với các tùy chọn
+    const table = $('#posts-table').DataTable({
+        "pageLength": 5,
+        "lengthMenu": [ [5, 10, 25, 50, -1], [5, 10, 25, 50, "Tất cả"] ],
+        "language": {
+            "lengthMenu": "Hiển thị _MENU_ bài viết mỗi trang",
+            "zeroRecords": "Không tìm thấy bài viết nào",
+            "info": "Hiển thị trang _PAGE_ trên _PAGES_",
+            "infoEmpty": "Không có bài viết nào",
+            "infoFiltered": "(lọc từ _MAX_ bài viết)",
+            "search": "Tìm kiếm:",
+            "paginate": { "first": "Đầu", "last": "Cuối", "next": "Tiếp", "previous": "Trước" },
+        },
+        responsive: true,
+        buttons: [{
+            extend: 'excelHtml5',
+            text: 'Xuất Excel',
+            className: 'excel-button-custom dt-button',
+            action: (e, dt, node, config) => window.location.href = "{{ route('posts.export') }}"
+        }],
+        columnDefs: [
+            { responsivePriority: 1, targets: 0 }, // Tiêu đề
+            { responsivePriority: 2, targets: 5 }, // Hành động (index 5)
+            { responsivePriority: 3, targets: 1 }, // Mô tả
+            { responsivePriority: 4, targets: 2 }, // Danh mục (index 2)
+            { responsivePriority: 5, targets: 3 }, // Người đăng
+            { responsivePriority: 6, targets: 4 }, // Ngày đăng
+        ],
+        dom: '<"top"lfB>rt<"bottom"ip><"clear">',
     });
+
+    // 3. Lấy các phần tử DOM cho bộ lọc
+    const parentFilter = $('#parent-category-filter');
+    const childFilter = $('#child-category-filter');
+
+    // 4. Hàm lọc chính (được tối ưu để gọi qua debounce)
+    function applyFilter() {
+        const parentText = parentFilter.find('option:selected').text().trim();
+        const childText = childFilter.find('option:selected').text().trim();
+        let searchTerm = '';
+
+        if (parentFilter.val()) { // Nếu có chọn cha
+            if (childFilter.val()) { // Và có chọn con
+                searchTerm = parentText + ' → ' + childText;
+            } else { // Chỉ chọn cha
+                searchTerm = parentText;
+            }
+        }
+        
+        // Cột Danh mục có index là 2
+        table.column(2).search(searchTerm ? '^' + $.fn.dataTable.util.escapeRegex(searchTerm) : '', true, false).draw();
+    }
+
+    // 5. Gán sự kiện cho dropdown cha
+    parentFilter.on('change', function() {
+        const parentId = $(this).val();
+        childFilter.empty().append('<option value="">-- Tất cả --</option>');
+
+        if (parentId) {
+            childFilter.prop('disabled', false);
+            // Lọc và thêm các danh mục con tương ứng từ mảng phẳng
+            const children = allChildCategories.filter(cat => cat.parent_id == parentId);
+            children.forEach(cat => {
+                childFilter.append(`<option value="${cat.id}">${cat.name}</option>`);
+            });
+        } else {
+            childFilter.prop('disabled', true);
+        }
+        // ✨ TỐI ƯU INP: Gọi hàm lọc thông qua debounce với độ trễ 250ms ✨
+        debounce(applyFilter, 250)();
+    });
+
+    // 6. Gán sự kiện cho dropdown con
+    childFilter.on('change', debounce(applyFilter, 250));
+
+    // 7. ✨ TỐI ƯU INP: Sử dụng Event Delegation cho nút Xóa ✨
+    $('#posts-table').on('submit', '.form-delete', function(e) {
+        e.preventDefault();
+        const form = this;
+        Swal.fire({
+            title: 'Bạn có chắc muốn xóa?', text: "Hành động này không thể hoàn tác!", icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Có, xóa nó!', cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+    
+    // 8. Hiển thị thông báo thành công (nếu có)
+    @if (session('success'))
+        Swal.fire({
+            icon: 'success', title: '{{ session('success') }}',
+            showConfirmButton: false, timer: 1500
+        });
     @endif
 });
-    </script>
-<script>
-    const allChildCategories = @json($childCategories);
+</script>
 </script>
 
 </x-app-layout>

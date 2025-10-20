@@ -325,7 +325,7 @@ public function listdanhsach()
     $posts = Post::with('user', 'category.parent')->latest()->get();
     $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get();
     
-    // ✨ Quan trọng: Lấy danh sách phẳng tất cả các danh mục con
+    
     $childCategories = Category::whereNotNull('parent_id')->orderBy('name')->get(); 
     
     return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories'));

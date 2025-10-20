@@ -61,26 +61,43 @@
 
                     {{-- Hành động --}}
                     <div class="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        @if(auth()->check() && auth()->user()->role !== 'User') {{-- Thêm auth()->check() cho an toàn --}}
-                            <a href="{{ route('posts.edit', $post) }}"
-                            class="w-full sm:w-auto text-center px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-500 hover:text-white transition-all">
-                                ✏️ Chỉnh sửa
-                            </a>
-                            <form action="{{ route('posts.destroy', $post) }}" method="POST" class="w-full sm:w-auto">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                        class="w-full sm:w-auto text-center px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-500 hover:text-white transition-all"
-                                        onclick="return confirmDelete(event);">
-                                    🗑️ Xóa
-                                </button>
-                            </form>
-                        @endif
-                         <a href="{{ url()->previous() }}"
-                           class="w-full sm:w-auto text-center px-4 py-2 border border-gray-400 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
-                            ⬅️ Quay lại
-                        </a>
-                    </div>
+    @if(auth()->check() && auth()->user()->role !== 'User')
+        
+        {{-- Nút CHỈNH SỬA --}}
+        <a href="{{ route('posts.edit', $post) }}"
+        class="w-full sm:w-auto sm:min-w-28 
+               inline-flex items-center justify-center 
+               px-4 py-2 text-sm leading-tight border border-blue-500 text-blue-500 rounded-md 
+               hover:bg-blue-500 hover:text-white transition-all">
+            ✏️ Chỉnh sửa
+        </a>
+        
+        {{-- FORM XÓA (Cần có ID để JavaScript tìm thấy) --}}
+        <form id="delete-post-form" action="{{ route('posts.destroy', $post) }}" method="POST" class="w-full sm:w-auto">
+            @csrf
+            @method('DELETE')
+        </form>
+
+        {{-- Nút XÓA (Anchor tag gọi hàm với ID form) --}}
+        <a href="#"
+           class="w-full sm:w-auto sm:min-w-28 
+                 inline-flex items-center justify-center 
+                 px-4 py-2 text-sm leading-tight border border-red-500 text-red-500 rounded-md 
+                 hover:bg-red-500 hover:text-white transition-all"
+           onclick="return confirmDelete('delete-post-form', event);"> {{-- THAY ĐỔI LỚN NHẤT Ở ĐÂY --}}
+            🗑️ Xóa
+        </a>
+    @endif
+    
+    {{-- Nút QUAY LẠI --}}
+    <a href="{{ url()->previous() }}"
+        class="w-full sm:w-auto sm:min-w-28 
+               inline-flex items-center justify-center 
+               px-4 py-2 text-sm leading-tight border border-gray-400 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md 
+               hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+        ⬅️ Quay lại
+    </a>
+</div>
                 </div>
             </div>
         </div>
@@ -112,38 +129,40 @@
     </style>
 
     <script>
-        // Khởi tạo lightbox với tùy chọn (nếu cần)
-        lightbox.option({
-          'resizeDuration': 200,
-          'wrapAround': true,
-          'fadeDuration': 300
+    // Khởi tạo lightbox với tùy chọn (nếu cần)
+    lightbox.option({
+        'resizeDuration': 200,
+        'wrapAround': true,
+        'fadeDuration': 300
+    });
+
+    // Hàm confirm xóa với SweetAlert đã được cập nhật
+    function confirmDelete(formId, event) {
+        event.preventDefault(); // Ngăn hành động mặc định của thẻ <a> (chuyển hướng)
+        
+        // SỬA: Lấy form bằng ID được truyền vào, thay vì dựa vào event.target.closest('form')
+        const form = document.getElementById(formId); 
+
+        Swal.fire({
+            title: 'Bạn có chắc muốn xóa?',
+            text: "Hành động này không thể hoàn tác!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Có, xóa nó!',
+            cancelButtonText: 'Hủy',
+            customClass: {
+                popup: 'dark:bg-gray-800 dark:text-gray-200',
+                title: 'dark:text-gray-100',
+                htmlContainer: 'dark:text-gray-300'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit(); // Gửi form nếu xác nhận
+            }
         });
-
-        // Hàm confirm xóa với SweetAlert
-        function confirmDelete(event) {
-            event.preventDefault(); // Ngăn form submit ngay
-            const form = event.target.closest('form'); // Lấy form cha của button
-
-            Swal.fire({
-                title: 'Bạn có chắc muốn xóa?',
-                text: "Hành động này không thể hoàn tác!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Có, xóa nó!',
-                cancelButtonText: 'Hủy',
-                customClass: { // Thêm class cho dark mode nếu cần
-                    popup: 'dark:bg-gray-800 dark:text-gray-200',
-                    title: 'dark:text-gray-100',
-                    htmlContainer: 'dark:text-gray-300'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit(); // Tiếp tục submit nếu xác nhận
-                }
-            });
-            return false; // Ngăn chặn hành động mặc định của onclick
-        }
-    </script>
+        return false; // Ngăn chặn hành động mặc định của onclick
+    }
+</script>
 </x-app-layout>
