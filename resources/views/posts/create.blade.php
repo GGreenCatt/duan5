@@ -156,6 +156,7 @@
             CKEDITOR.replace('content', {
                 uiColor: '#374151', // gray-700
                 // You can add more CKEditor configurations here
+                removePlugins: 'notificationaggregator,notification'
             });
 
             // --- Form state tracking ---

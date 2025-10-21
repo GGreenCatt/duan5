@@ -39,7 +39,33 @@
         background-color: #007bff !important;
         color: #fff !important;
     }
+.dtr-modal-content p,
+.dtr-modal-content div,
+.dtr-modal-content span,
+.dtr-modal-content li, /* Thêm cho các thẻ danh sách */
+.dtr-modal-content pre, /* Thêm cho thẻ code block */
+.dtr-modal-content code,
+.dtr-modal-content img, /* Thêm cho ảnh */
+.dtr-modal-content table /* Thêm cho bảng */ {
+    white-space: normal !important;   /* Cho phép xuống dòng */
+    word-wrap: break-word !important;   /* Ngắt từ dài */
+    overflow-wrap: break-word !important; /* Ngắt từ dài (chuẩn hơn) */
+    max-width: 100% !important;         /* Giới hạn chiều rộng tối đa */
+    height: auto !important;            /* Đảm bảo chiều cao ảnh tự điều chỉnh */
+    display: block; /* Giúp max-width hoạt động tốt hơn với inline elements như span, code */
+}
 
+/* Đảm bảo code block cũng xuống dòng */
+.dtr-modal-content pre {
+    white-space: pre-wrap !important; /* Giữ định dạng nhưng cho phép xuống dòng */
+}
+
+/* Giới hạn chiều rộng của modal để dễ đọc hơn */
+.dtr-modal div.dtr-modal-content {
+    max-width: 85vw; /* Ví dụ: tối đa 85% chiều rộng màn hình */
+    /* Hoặc max-width: 700px; nếu muốn cố định */
+    box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước */
+}
     #posts-table thead th {
         background-color: #444 !important;
         color: #fff !important;
@@ -209,7 +235,7 @@
                                 <tr>
                                     <th>Tiêu đề</th>
                                     <th>Mô tả ngắn</th>
-                                    <th style="display: none;" data-priority="10001" class="content-column">Nội dung</th> <!-- data-priority thấp hơn sẽ ẩn sau, thêm class để dễ nhận biết -->
+                                    <th style="display: none;" data-priority="10001" class="never content-column">Nội dung</th> <!-- data-priority thấp hơn sẽ ẩn sau, thêm class để dễ nhận biết -->
                                     <th>Danh mục</th>
                                     <th>Người đăng</th>
                                     <th>Ngày đăng</th>
@@ -279,7 +305,6 @@
 
 
     <script>
-    // ✨ SCRIPT ĐÃ ĐƯỢC TỐI ƯU HÓA HOÀN TOÀN ĐỂ CẢI THIỆN HIỆU NĂNG ✨
 
 // Truyền dữ liệu danh mục con từ PHP sang JS một cách an toàn
 const allChildCategories = @json($childCategories);
