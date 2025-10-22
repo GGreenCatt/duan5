@@ -6,7 +6,6 @@ use App\Models\Post;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use App\Exports\PostsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
@@ -18,43 +17,42 @@ class PostController extends Controller
      */
     public function listPosts(Request $request)
     {
-        // Lấy dữ liệu cho các dropdown bộ lọc
-        $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
+        // ===== ĐÃ CẬP NHẬT: Thêm lại các biến cần thiết =====
+        $parentCategories = Category::whereNull('parent_id')->with('children')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
 
-        // Bắt đầu query
         $query = Post::with(['category', 'user'])->orderBy('created_at', 'desc');
 
-        // 1. Lọc theo từ khóa tìm kiếm (title)
         if ($request->filled('search')) {
             $query->where('title', 'like', '%' . $request->search . '%');
         }
 
-        // 2. Lọc theo danh mục (cả cha và con)
-        if ($request->filled('category_id')) {
-            $categoryId = $request->category_id;
-            // Tìm category được chọn và bao gồm cả các con của nó (nếu là danh mục cha)
-            $category = Category::with('children')->find($categoryId);
-            if ($category) {
-                $categoryIds = $category->children->pluck('id')->push($category->id)->all();
-                $query->whereIn('category_id', $categoryIds);
+        if ($request->filled('child_category_id')) {
+            $query->where('category_id', $request->child_category_id);
+        }
+        elseif ($request->filled('parent_category_id')) {
+            $parentCategory = Category::with('children')->find($request->parent_category_id);
+            if ($parentCategory) {
+                $categoryIds = $parentCategory->children->pluck('id')->all();
+                if(!empty($categoryIds)) {
+                    $query->whereIn('category_id', $categoryIds);
+                }
             }
         }
 
-        // Lấy kết quả đã phân trang
-        $posts = $query->paginate(10)->withQueryString(); // withQueryString() để giữ lại tham số lọc khi chuyển trang
+        $posts = $query->paginate(10)->withQueryString();
 
-        // Thống kê
         $totalPosts = Post::count();
         $postsThisMonth = Post::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
 
         return view('posts.listdanhsach', compact(
-            'posts', 
-            'parentCategories', 
-            'childCategories',
+            'posts',
+            'parentCategories',
+            'childCategories', // <-- Biến đã được thêm lại
             'totalPosts',
             'postsThisMonth'
         ));
+        // ====================================================
     }
 
     /**
@@ -62,12 +60,20 @@ class PostController extends Controller
      */
     public function postsByCategory(Category $category)
     {
+        // ===== ĐÃ CẬP NHẬT: Thêm lại các biến cần thiết =====
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
+        // ====================================================
+        
         $categoryIds = $category->children()->pluck('id')->push($category->id);
         $posts = Post::with(['category', 'user'])->whereIn('category_id', $categoryIds)->orderBy('created_at', 'desc')->paginate(12);
         $categoryName = $category->name;
-        return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories', 'categoryName'));
+        
+        // Thống kê (thêm vào để view không bị lỗi)
+        $totalPosts = Post::count();
+        $postsThisMonth = Post::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+
+        return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories', 'categoryName', 'totalPosts', 'postsThisMonth'));
     }
 
     /**
@@ -75,14 +81,9 @@ class PostController extends Controller
      */
     public function create()
     {
-        // ===== ĐÃ CẬP NHẬT: Gửi 2 biến cho view =====
-        // 1. Chỉ lấy các danh mục cha cho dropdown đầu tiên
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
-        // 2. Lấy tất cả danh mục để JS lọc ra danh mục con
         $allCategories = Category::orderBy('name', 'asc')->get();
-        
         return view('posts.create', compact('parentCategories', 'allCategories'));
-        // ===============================================
     }
 
     /**
@@ -131,16 +132,11 @@ class PostController extends Controller
                             ->orderBy('created_at', 'desc')
                             ->take(4)
                             ->get();
-
-        // ===== LOGIC MỚI: KIỂM TRA VAI TRÒ =====
-        // Nếu người dùng đã đăng nhập và là Admin
+        
         if (auth()->check() && auth()->user()->role === 'Admin') {
-            return view('posts.show', compact('post', 'relatedPosts')); // Trả về view của Admin
+            return view('posts.show', compact('post', 'relatedPosts'));
         }
-
-        // Mặc định trả về view của Khách
         return view('guest.show', compact('post', 'relatedPosts'));
-        // =======================================
     }
 
     /**
@@ -148,7 +144,6 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        // View edit.blade.php cần biến $categories, chứa danh sách phẳng
         $categories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
         return view('posts.edit', compact('post', 'categories'));
     }
@@ -170,9 +165,7 @@ class PostController extends Controller
         $post->fill($validatedData);
 
         if ($request->hasFile('banner_image')) {
-            if ($post->banner_image) {
-                Storage::disk('public')->delete($post->banner_image);
-            }
+            if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
             $post->banner_image = $request->file('banner_image')->store('post_banners', 'public');
         }
 
@@ -194,21 +187,43 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        if ($post->banner_image) {
-            Storage::disk('public')->delete($post->banner_image);
-        }
+        if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
         if (is_array($post->gallery_images)) {
-            foreach ($post->gallery_images as $image) {
-                Storage::disk('public')->delete($image);
-            }
+            foreach ($post->gallery_images as $image) { Storage::disk('public')->delete($image); }
         }
         $post->delete();
         return redirect()->route('posts.list')->with('success', 'Bài viết đã được xóa thành công.');
     }
 
-    /**
-     * Remove the banner image from the specified resource.
-     */
+    public function bulkDestroy(Request $request)
+    {
+        // Validate an array of post IDs is present.
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:posts,id',
+        ]);
+
+        $postIds = $request->input('ids');
+        $posts = Post::whereIn('id', $postIds)->get();
+
+        foreach ($posts as $post) {
+            // Xóa ảnh banner
+            if ($post->banner_image) {
+                Storage::disk('public')->delete($post->banner_image);
+            }
+            // Xóa ảnh gallery
+            if (is_array($post->gallery_images)) {
+                foreach ($post->gallery_images as $image) {
+                    Storage::disk('public')->delete($image);
+                }
+            }
+        }
+
+        // Xóa các bài viết khỏi database
+        Post::destroy($postIds);
+
+        return redirect()->route('posts.list')->with('success', count($postIds) . ' bài viết đã được xóa thành công.');
+    }
     public function deleteBanner(Post $post)
     {
         if ($post->banner_image) {
@@ -220,9 +235,6 @@ class PostController extends Controller
         return response()->json(['success' => false, 'message' => 'Không có ảnh banner để xóa.'], 404);
     }
 
-    /**
-     * Remove a gallery image from the specified resource.
-     */
     public function deleteGallery(Request $request, Post $post)
     {
         $imagePath = $request->input('image');
@@ -239,9 +251,6 @@ class PostController extends Controller
         return response()->json(['success' => false, 'message' => 'Không tìm thấy ảnh hoặc có lỗi xảy ra.'], 404);
     }
 
-    /**
-     * Export posts to an Excel file.
-     */
     public function exportPosts()
     {
         return Excel::download(new PostsExport, 'danh-sach-bai-viet.xlsx');
