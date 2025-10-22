@@ -7,7 +7,7 @@
                         <div>
                             <div class="flex items-center">
                                 {{-- Link logo trỏ về trang chủ khách --}}
-                                <a href="{{ route('guest.index') }}"> {{-- Sửa user.dashboard thành guest.home --}}
+                                <a href="{{ route('guest.home') }}"> {{-- Sửa user.dashboard thành guest.home --}}
                                     <x-application-logo class="block h-10 w-auto fill-current text-gray-800 dark:text-gray-200" />
                                 </a>
                                 <span class="ml-3 text-xl font-semibold text-gray-800 dark:text-gray-100">{{ config('app.name', 'Laravel') }}</span>
@@ -34,7 +34,7 @@
                             <h5 class="font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Điều hướng</h5>
                             <ul class="mt-4 space-y-3">
                                 {{-- ===== DÒNG CẦN SỬA ===== --}}
-                                <li><a href="{{ route('guest.index') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Trang chủ</a></li> {{-- Sửa user.dashboard thành guest.home --}}
+                                <li><a href="{{ route('guest.home') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Trang chủ</a></li> {{-- Sửa user.dashboard thành guest.home --}}
                                 {{-- ========================= --}}
                                 <li><a href="{{ route('about') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Về chúng tôi</a></li>
                                 <li><a href="#" class="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Liên hệ</a></li>

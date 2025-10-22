@@ -18,10 +18,43 @@ class PostController extends Controller
      */
     public function listPosts(Request $request)
     {
+        // Lấy dữ liệu cho các dropdown bộ lọc
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
-        $posts = Post::with(['category', 'user'])->orderBy('created_at', 'desc')->paginate(12);
-        return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories'));
+
+        // Bắt đầu query
+        $query = Post::with(['category', 'user'])->orderBy('created_at', 'desc');
+
+        // 1. Lọc theo từ khóa tìm kiếm (title)
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        // 2. Lọc theo danh mục (cả cha và con)
+        if ($request->filled('category_id')) {
+            $categoryId = $request->category_id;
+            // Tìm category được chọn và bao gồm cả các con của nó (nếu là danh mục cha)
+            $category = Category::with('children')->find($categoryId);
+            if ($category) {
+                $categoryIds = $category->children->pluck('id')->push($category->id)->all();
+                $query->whereIn('category_id', $categoryIds);
+            }
+        }
+
+        // Lấy kết quả đã phân trang
+        $posts = $query->paginate(10)->withQueryString(); // withQueryString() để giữ lại tham số lọc khi chuyển trang
+
+        // Thống kê
+        $totalPosts = Post::count();
+        $postsThisMonth = Post::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+
+        return view('posts.listdanhsach', compact(
+            'posts', 
+            'parentCategories', 
+            'childCategories',
+            'totalPosts',
+            'postsThisMonth'
+        ));
     }
 
     /**
@@ -92,20 +125,22 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        // Tải các quan hệ cần thiết
         $post->load(['category.parent', 'user']);
-        
-        // Lấy các bài viết liên quan
         $relatedPosts = Post::where('category_id', $post->category_id)
                             ->where('id', '!=', $post->id)
                             ->orderBy('created_at', 'desc')
                             ->take(4)
                             ->get();
-                            
-        // ===== ĐÃ CẬP NHẬT: Bỏ json_decode và biến $galleryImages =====
-        // Biến $post->gallery_images đã là một array (do Model cast) và sẽ được dùng trực tiếp trong view.
-        return view('posts.show', compact('post', 'relatedPosts'));
-        // =============================================================
+
+        // ===== LOGIC MỚI: KIỂM TRA VAI TRÒ =====
+        // Nếu người dùng đã đăng nhập và là Admin
+        if (auth()->check() && auth()->user()->role === 'Admin') {
+            return view('posts.show', compact('post', 'relatedPosts')); // Trả về view của Admin
+        }
+
+        // Mặc định trả về view của Khách
+        return view('guest.show', compact('post', 'relatedPosts'));
+        // =======================================
     }
 
     /**

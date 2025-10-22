@@ -146,8 +146,6 @@
         </div>
     </div>
 
-    {{-- Script SweetAlert2 --}}
-    @push('scripts')
     {{-- Đoạn script này đã có sẵn trong file của bạn, chỉ cần đảm bảo nó nằm trong @push --}}
     <script>
         function confirmDelete(categoryId) {
@@ -187,7 +185,5 @@
         </script>
     @endif
     {{-- ========================================================== --}}
-    
-    @endpush
 
 </x-app-layout>
