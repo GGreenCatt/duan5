@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+
 
 class CategoryController extends Controller
 {
@@ -12,27 +16,30 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        // Tải tất cả danh mục cha, cùng với danh mục con của chúng
-        // và đếm số bài viết cho mỗi danh mục (cả cha và con) một cách hiệu quả.
-        $categories = Category::whereNull('parent_id')
-                                ->with(['children' => function ($query) {
-                                    $query->withCount('posts'); // Đếm bài viết cho từng danh mục con
-                                }])
-                                ->withCount('posts') // Đếm bài viết cho danh mục cha
-                                ->orderBy('name')
-                                ->get();
+        // Lấy danh sách danh mục cha đã phân trang để hiển thị
+        $categories_paginated = Category::with(['children.posts', 'posts'])
+                                ->whereNull('parent_id')
+                                ->withCount('posts')
+                                ->orderBy('name', 'asc')
+                                ->paginate(5); // Phân trang 5 danh mục cha mỗi trang
 
-        return view('categories.index', compact('categories'));
+        // Lấy TẤT CẢ danh mục cha để điền vào form "Thêm mới"
+        $all_parent_categories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
+        
+        // Trả về view với cả 2 biến
+        return view('categories.index', [
+            'categories' => $categories_paginated,
+            'parent_categories_for_form' => $all_parent_categories
+        ]);
     }
-
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        $categories = Category::whereNull('parent_id')->get();
-        return view('categories.create', compact('categories'));
+        $parentCategories = Category::whereNull('parent_id')->get();
+        return view('categories.create', compact('parentCategories'));
     }
 
     /**
@@ -40,15 +47,35 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
-            'description' => 'nullable|string',
+        $validatedData = $request->validate([
+            'name' => 'required|max:255|unique:categories',
             'parent_id' => 'nullable|exists:categories,id',
+            'description' => 'nullable',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
-
-        Category::create($request->all());
-
+    
+        $category = new Category($validatedData);
+        
+        // ===== DÒNG GÂY LỖI ĐÃ BỊ XÓA =====
+        // $category->user_id = Auth::id();
+        // ===================================
+    
+        if ($request->hasFile('image')) {
+            $category->image = $request->file('image')->store('category_images', 'public');
+        }
+    
+        $category->save();
+    
         return redirect()->route('categories.index')->with('success', 'Danh mục đã được tạo thành công.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Category $category)
+    {
+         $posts = $category->posts()->paginate(10); 
+        return view('categories.show', compact('category', 'posts'));
     }
 
     /**
@@ -56,8 +83,8 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        $categories = Category::whereNull('parent_id')->where('id', '!=', $category->id)->get();
-        return view('categories.edit', compact('category', 'categories'));
+        $parentCategories = Category::whereNull('parent_id')->where('id', '!=', $category->id)->get();
+        return view('categories.edit', compact('category', 'parentCategories'));
     }
 
     /**
@@ -65,26 +92,49 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'description' => 'nullable|string',
+        $validatedData = $request->validate([
+            'name' => 'required|max:255|unique:categories,name,' . $category->id,
             'parent_id' => 'nullable|exists:categories,id',
+            'description' => 'nullable',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
 
-        $category->update($request->all());
+        $category->fill($validatedData);
+
+        if ($request->hasFile('image')) {
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+            $category->image = $request->file('image')->store('category_images', 'public');
+        }
+
+        $category->save();
 
         return redirect()->route('categories.index')->with('success', 'Danh mục đã được cập nhật thành công.');
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Category $category)
     {
-        // Xóa các danh mục con trước (nếu có)
-        $category->children()->delete();
+        if ($category->image) {
+            Storage::disk('public')->delete($category->image);
+        }
+    
         $category->delete();
-
-        return redirect()->route('categories.index')->with('success', 'Danh mục và các danh mục con đã được xóa.');
+    
+        return redirect()->route('categories.index')->with('success', 'Danh mục đã được xóa thành công.');
+    }
+     public function deleteImage(Category $category)
+    {
+        if ($category->image) {
+            Storage::disk('public')->delete($category->image);
+            $category->image = null;
+            $category->save();
+            return back()->with('success', 'Ảnh danh mục đã được xóa.');
+        }
+        return back()->with('error', 'Không có ảnh để xóa.');
     }
 }

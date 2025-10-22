@@ -37,27 +37,28 @@
                     </div>
 
                     {{-- Bộ sưu tập ảnh --}}
-                    @if (!empty($galleryImages) && count($galleryImages) > 0)
+                    {{-- ===== ĐÃ SỬA LẠI BIẾN (Bỏ $galleryImages) ===== --}}
+                    @if ($post->gallery_images && count($post->gallery_images) > 0)
                         <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-gray-900 dark:text-gray-100">Bộ sưu tập ảnh</h3>
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
-                                @foreach ($galleryImages as $image)
-                                    <div class="relative aspect-square"> {{-- aspect-square để giữ tỷ lệ ảnh vuông, hoặc bỏ nếu muốn ảnh tự do --}}
+                                @foreach ($post->gallery_images as $image)
+                                    <div class="relative aspect-square">
                                         <a href="{{ asset('storage/' . $image) }}" data-lightbox="gallery" data-title="Hình ảnh trong thư viện">
                                             <img src="{{ asset('storage/' . $image) }}" alt="Gallery Image"
                                                  class="gallery-image w-full h-full object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity">
-                                                 {{-- object-cover để lấp đầy, object-contain nếu muốn thấy toàn bộ ảnh --}}
                                         </a>
                                     </div>
                                 @endforeach
                             </div>
                         </div>
                     @else
-                         <div>
+                        <div>
                             <h3 class="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-gray-900 dark:text-gray-100">Bộ sưu tập ảnh</h3>
                             <p class="text-gray-600 dark:text-gray-300">Không có ảnh trong bộ sưu tập.</p>
                         </div>
                     @endif
+                    {{-- ================================================ --}}
 
                     {{-- Hành động --}}
                     <div class="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -107,7 +108,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox-plus-jquery.min.js"></script>
     {{-- SweetAlert cho confirm xóa --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
     <style>

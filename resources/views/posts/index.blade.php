@@ -1,5 +1,4 @@
 @if (session('success') === 'Đăng nhập thành công')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             Swal.fire({
@@ -65,8 +64,11 @@
 </x-app-layout>
 
 <!-- Biểu đồ Chart.js -->
+ 
+ <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+        console.log(jQuery().jquery);
     document.addEventListener("DOMContentLoaded", function() {
         // Hiển thị thời gian thực
         function updateClock() {

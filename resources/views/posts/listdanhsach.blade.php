@@ -316,7 +316,6 @@ function stripHtmlTags(html) {
 }
 
 $(document).ready(function() {
-    // 1. ✨ TỐI ƯU: Hàm Debounce để trì hoãn việc thực thi, giảm INP
     function debounce(func, delay) {
         let timeout;
         return function(...args) {
@@ -399,21 +398,6 @@ $(document).ready(function() {
 
     // 6. Gán sự kiện cho dropdown con
     childFilter.on('change', debounce(applyFilter, 250));
-
-    // 7. ✨ TỐI ƯU INP: Sử dụng Event Delegation cho nút Xóa ✨
-    $('#posts-table').on('submit', '.form-delete', function(e) {
-        e.preventDefault();
-        const form = this;
-        Swal.fire({
-            title: 'Bạn có chắc muốn xóa?', text: "Hành động này không thể hoàn tác!", icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Có, xóa nó!', cancelButtonText: 'Hủy'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        });
-    });
     
     // 8. Hiển thị thông báo thành công (nếu có)
     @if (session('success'))
@@ -424,6 +408,40 @@ $(document).ready(function() {
     @endif
 });
 </script>
-</script>
+<script>
+        // Hàm xác nhận xóa
+        function confirmDelete(postId) {
+            Swal.fire({
+                title: 'Bạn có chắc chắn muốn xóa?',
+                text: "Hành động này sẽ không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Vâng, xóa nó!',
+                cancelButtonText: 'Hủy',
+                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#fff',
+                color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + postId).submit();
+                }
+            })
+        }
 
+        // Script hiển thị thông báo thành công (chỉ chạy khi có session 'success')
+        @if (session('success'))
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: '{{ session('success') }}',
+                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+            });
+        @endif
+    </script>
 </x-app-layout>

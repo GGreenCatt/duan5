@@ -2,349 +2,213 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Exports\PostsExport;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    // ... (các phương thức khác như index, listPosts,...)
-
-    public function create()
+    /**
+     * Hiển thị danh sách bài viết (CHỈ DÀNH CHO ADMIN).
+     */
+    public function listPosts(Request $request)
     {
-        // Kiểm tra quyền: Chỉ Admin mới được tạo bài viết
-        if (Auth::user()->role !== 'Admin') {
-            // Chuyển hướng về user dashboard với thông báo lỗi nếu không phải Admin
-            return redirect()->route('user.dashboard')->with('error', 'Bạn không có quyền thực hiện hành động này.');
-        }
-
-        $parentCategories = Category::whereNull('parent_id')->get();
-        $allCategories = Category::all();
-        return view('posts.create', compact('parentCategories', 'allCategories'));
-    }
-
-    public function store(Request $request)
-    {
-        // Kiểm tra quyền: Chỉ Admin mới được lưu bài viết
-        if (Auth::user()->role !== 'Admin') {
-            return redirect()->route('user.dashboard')->with('error', 'Bạn không có quyền thực hiện hành động này.');
-        }
-
-        $request->validate([
-            'title' => ['required', 'string', 'max:100', function ($attribute, $value, $fail) {
-                if (trim($value) === '') {
-                    $fail('Không được nhập chỉ khoảng trắng.');
-                }
-            }],
-            'short_description' => ['required', 'string', 'max:200', function ($attribute, $value, $fail) {
-                if (trim($value) === '') {
-                    $fail('Không được nhập chỉ khoảng trắng.');
-                }
-            }],
-            'content' => ['required', 'string', 'max:3000', function ($attribute, $value, $fail) { // Tăng giới hạn content nếu cần
-                if (trim(strip_tags($value)) === '') { // Kiểm tra nội dung sau khi loại bỏ HTML
-                    $fail('Nội dung không được để trống hoặc chỉ chứa thẻ HTML rỗng.');
-                }
-            }],
-            'category_id' => 'required|exists:categories,id',
-            'banner_image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // Thêm webp, yêu cầu banner
-            'gallery_images' => 'required|array|min:2|max:5', // Yêu cầu gallery, min 2 max 5
-            'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048', // Validate từng ảnh trong gallery
-        ], [
-            'title.max' => 'Tiêu đề không được vượt quá 100 ký tự.',
-            'short_description.max' => 'Mô tả ngắn không được vượt quá 200 ký tự.',
-            'content.max' => 'Nội dung không được vượt quá 3000 ký tự.',
-            'category_id.required' => 'Vui lòng chọn danh mục.',
-            'category_id.exists' =>'Danh mục không hợp lệ.',
-            'banner_image.required' => 'Vui lòng chọn ảnh banner.',
-            'banner_image.image' => 'Banner phải là một tập tin hình ảnh.',
-            'banner_image.mimes' => 'Banner phải có định dạng: jpeg, png, jpg, gif, webp.',
-            'banner_image.max' => 'Banner không được vượt quá 2MB.',
-            'gallery_images.required' => 'Vui lòng chọn ảnh thư viện.',
-            'gallery_images.array' => 'Ảnh thư viện phải là một danh sách.',
-            'gallery_images.min' => 'Phải chọn ít nhất 2 ảnh cho thư viện.',
-            'gallery_images.max' => 'Chỉ được chọn tối đa 5 ảnh cho thư viện.',
-            'gallery_images.*.image' => 'Mỗi mục trong thư viện phải là hình ảnh.',
-            'gallery_images.*.mimes' => 'Ảnh thư viện phải có định dạng: jpeg, png, jpg, gif, webp.',
-            'gallery_images.*.max' => 'Mỗi ảnh thư viện không được vượt quá 2MB.',
-        ]);
-
-        $banner_image_path = $request->file('banner_image')->store('posts/banners', 'public');
-
-        $gallery_images_paths = [];
-        if ($request->hasFile('gallery_images')) {
-            foreach ($request->file('gallery_images') as $image) {
-                $gallery_images_paths[] = $image->store('posts/gallery', 'public');
-            }
-        }
-
-        Post::create([
-            'user_id' => Auth::id(), // Người tạo bài sẽ là Admin đang đăng nhập
-            'category_id' => $request->category_id,
-            'title' => $request->title,
-            'short_description' => $request->short_description,
-            'content' => $request->content, // CKEditor đã xử lý HTML
-            'banner_image' => $banner_image_path,
-            'gallery_images' => json_encode($gallery_images_paths),
-        ]);
-        // dd($request->input('content')); // Dòng này có thể gỡ bỏ sau khi debug
-        return redirect()->route('posts.listdanhsach')->with('success', 'Bài viết đã được tạo thành công.'); // Sửa lại tên route listdanhsach nếu bạn đã đổi
-    }
-
-    // ... (các phương thức edit, update, destroy, show, deleteBanner, deleteGallery, exportPosts)
-    // Bạn cũng nên xem xét việc thêm kiểm tra quyền cho các phương thức edit, update, destroy
-    // nếu User thông thường không được phép sửa/xóa ngay cả bài của chính họ (trong trường hợp này thì không cần vì Admin quản lý hết)
-
-    // Phương thức index và listPosts như cũ
-    public function index()
-    {
-        // ... (logic hiện tại của bạn cho dashboard admin)
-        $totalPosts = Post::count();
-
-        $postsThisWeek = Post::whereBetween('created_at', [
-            now()->startOfWeek(),
-            now()->endOfWeek()
-        ])->count();
-
-        $postsThisMonth = Post::whereMonth('created_at', now()->month)->count();
-
-        $monthlyData = Post::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
-            ->groupBy('month')
-            ->pluck('count', 'month')->toArray();
-
-        $months = [];
-        $monthlyCounts = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $months[] = "Tháng $i";
-            $monthlyCounts[] = $monthlyData[$i] ?? 0;
-        }
-
-        $weeklyData = Post::selectRaw('WEEK(created_at, 1) as week, COUNT(*) as count')
-            ->whereYear('created_at', now()->year)
-            ->groupBy('week')
-            ->pluck('count', 'week')->toArray();
-
-        $weeklyLabels = [];
-        $weeklyCounts = [];
-        for ($i = 1; $i <= 52; $i++) {
-            $weeklyLabels[] = "Tuần $i";
-            $weeklyCounts[] = $weeklyData[$i] ?? 0;
-        }
-
-        $dailyData = Post::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->whereDate('created_at', '>=', now()->subDays(6)->toDateString())
-            ->groupBy('date')
-            ->pluck('count', 'date')->toArray();
-
-        $dailyLabels = [];
-        $dailyCounts = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i)->toDateString();
-            $dailyLabels[] = \Carbon\Carbon::parse($date)->format('d/m');
-            $dailyCounts[] = $dailyData[$date] ?? 0;
-        }
-
-        return view('posts.index', compact(
-            'totalPosts',
-            'postsThisWeek',
-            'postsThisMonth',
-            'months',
-            'monthlyCounts',
-            'weeklyLabels',
-            'weeklyCounts',
-            'dailyLabels',
-            'dailyCounts'
-        ));
-    }
-
-    public function listPosts()
-    {
-        $posts = Post::with(['category.parent', 'user'])->latest()->get();
-        $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get();
-        $childCategories = Category::whereNotNull('parent_id')->orderBy('name')->get();
+        $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
+        $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
+        $posts = Post::with(['category', 'user'])->orderBy('created_at', 'desc')->paginate(12);
         return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories'));
     }
 
+    /**
+     * Hiển thị bài viết theo danh mục (CHỈ DÀNH CHO ADMIN).
+     */
+    public function postsByCategory(Category $category)
+    {
+        $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
+        $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
+        $categoryIds = $category->children()->pluck('id')->push($category->id);
+        $posts = Post::with(['category', 'user'])->whereIn('category_id', $categoryIds)->orderBy('created_at', 'desc')->paginate(12);
+        $categoryName = $category->name;
+        return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories', 'categoryName'));
+    }
 
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        // ===== ĐÃ CẬP NHẬT: Gửi 2 biến cho view =====
+        // 1. Chỉ lấy các danh mục cha cho dropdown đầu tiên
+        $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
+        // 2. Lấy tất cả danh mục để JS lọc ra danh mục con
+        $allCategories = Category::orderBy('name', 'asc')->get();
+        
+        return view('posts.create', compact('parentCategories', 'allCategories'));
+        // ===============================================
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
+            'title' => 'required|max:100',
+            'short_description' => 'required|max:200',
+            'content' => 'required',
+            'category_id' => 'required|exists:categories,id',
+            'banner_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'gallery_images' => 'nullable|array|min:2|max:5',
+            'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+        ]);
+
+        $post = new Post($validatedData);
+        $post->user_id = Auth::id();
+
+        if ($request->hasFile('banner_image')) {
+            $post->banner_image = $request->file('banner_image')->store('post_banners', 'public');
+        }
+
+        if ($request->hasFile('gallery_images')) {
+            $gallery = [];
+            foreach ($request->file('gallery_images') as $image) {
+                $gallery[] = $image->store('post_gallery', 'public');
+            }
+            $post->gallery_images = $gallery;
+        }
+
+        $post->save();
+
+        return redirect()->route('posts.list')->with('success', 'Bài viết đã được tạo thành công.');
+    }
+    
+    /**
+     * Display the specified resource.
+     */
+    public function show(Post $post)
+    {
+        // Tải các quan hệ cần thiết
+        $post->load(['category.parent', 'user']);
+        
+        // Lấy các bài viết liên quan
+        $relatedPosts = Post::where('category_id', $post->category_id)
+                            ->where('id', '!=', $post->id)
+                            ->orderBy('created_at', 'desc')
+                            ->take(4)
+                            ->get();
+                            
+        // ===== ĐÃ CẬP NHẬT: Bỏ json_decode và biến $galleryImages =====
+        // Biến $post->gallery_images đã là một array (do Model cast) và sẽ được dùng trực tiếp trong view.
+        return view('posts.show', compact('post', 'relatedPosts'));
+        // =============================================================
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(Post $post)
     {
-        // Thêm kiểm tra: Chỉ Admin mới được sửa
-        if (Auth::user()->role !== 'Admin') {
-            return redirect()->route('user.dashboard')->with('error', 'Bạn không có quyền thực hiện hành động này.');
-        }
-        $categories = Category::all();
+        // View edit.blade.php cần biến $categories, chứa danh sách phẳng
+        $categories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
         return view('posts.edit', compact('post', 'categories'));
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, Post $post)
     {
-        // Thêm kiểm tra: Chỉ Admin mới được cập nhật
-        if (Auth::user()->role !== 'Admin') {
-            return redirect()->route('user.dashboard')->with('error', 'Bạn không có quyền thực hiện hành động này.');
-        }
-        // Validate tương tự store, nhưng banner và gallery có thể không bắt buộc nếu không thay đổi
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'short_description' => 'required|string|max:500',
-            'content' => ['required', 'string', 'max:3000', function ($attribute, $value, $fail) {
-                if (trim(strip_tags($value)) === '') {
-                    $fail('Nội dung không được để trống hoặc chỉ chứa thẻ HTML rỗng.');
-                }
-            }],
+        $validatedData = $request->validate([
+            'title' => 'required|max:255',
+            'short_description' => 'required',
+            'content' => 'required',
             'category_id' => 'required|exists:categories,id',
-            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'gallery_images' => 'nullable|array|max:5', // Không yêu cầu min khi update
-            'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
 
+        $post->fill($validatedData);
 
         if ($request->hasFile('banner_image')) {
-            if ($post->banner_image && Storage::disk('public')->exists($post->banner_image)) {
+            if ($post->banner_image) {
                 Storage::disk('public')->delete($post->banner_image);
             }
-            $post->banner_image = $request->file('banner_image')->store('posts/banners', 'public');
+            $post->banner_image = $request->file('banner_image')->store('post_banners', 'public');
         }
 
-        // Xử lý gallery images: Xóa cũ nếu có upload mới, giữ lại nếu không upload gì
         if ($request->hasFile('gallery_images')) {
-            // Xóa các ảnh gallery cũ (nếu có) chỉ khi có ảnh mới được upload
-            if ($post->gallery_images) {
-                $old_gallery = json_decode($post->gallery_images, true);
-                if (is_array($old_gallery)) {
-                    foreach ($old_gallery as $old_image) {
-                        if (Storage::disk('public')->exists($old_image)) {
-                            Storage::disk('public')->delete($old_image);
-                        }
-                    }
-                }
-            }
-
-            $gallery_images_paths = [];
+            $gallery = $post->gallery_images ?? [];
             foreach ($request->file('gallery_images') as $image) {
-                $gallery_images_paths[] = $image->store('posts/gallery', 'public');
+                $gallery[] = $image->store('post_gallery', 'public');
             }
-            $post->gallery_images = json_encode($gallery_images_paths);
+            $post->gallery_images = $gallery;
         }
 
-
-        $post->title = $request->title;
-        $post->short_description = $request->short_description;
-        $post->content = $request->content;
-        $post->category_id = $request->category_id;
-        // user_id không thay đổi khi update bài viết
         $post->save();
 
-
-        return redirect()->route('posts.listdanhsach')->with('success', 'Cập nhật bài viết thành công!');
+        return redirect()->route('posts.list')->with('success', 'Bài viết đã được cập nhật thành công.');
     }
 
-
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Post $post)
     {
-        // Thêm kiểm tra: Chỉ Admin mới được xóa
-        if (Auth::user()->role !== 'Admin') {
-            return redirect()->route('user.dashboard')->with('error', 'Bạn không có quyền thực hiện hành động này.');
-        }
-
         if ($post->banner_image) {
             Storage::disk('public')->delete($post->banner_image);
         }
-
-        if ($post->gallery_images) {
-            $gallery = json_decode($post->gallery_images, true);
-            if(is_array($gallery)){
-                foreach ($gallery as $image) {
-                    Storage::disk('public')->delete($image);
-                }
+        if (is_array($post->gallery_images)) {
+            foreach ($post->gallery_images as $image) {
+                Storage::disk('public')->delete($image);
             }
         }
-
         $post->delete();
-        return redirect()->route('posts.listdanhsach')->with('success', 'Bài viết đã được xóa.');
+        return redirect()->route('posts.list')->with('success', 'Bài viết đã được xóa thành công.');
     }
 
-    public function show(Post $post)
-    {
-        $galleryImages = $post->gallery_images ? json_decode($post->gallery_images, true) : [];
-        return view('posts.show', compact('post', 'galleryImages'));
-    }
-
-
+    /**
+     * Remove the banner image from the specified resource.
+     */
     public function deleteBanner(Post $post)
     {
-        // Chỉ Admin mới được xóa banner
-        if (Auth::user()->role !== 'Admin') {
-            return response()->json(['success' => false, 'message' => 'Không có quyền.'], 403);
-        }
-
         if ($post->banner_image) {
-            Storage::delete('public/' . $post->banner_image);
+            Storage::disk('public')->delete($post->banner_image);
             $post->banner_image = null;
             $post->save();
-            return response()->json(['success' => true, 'message' => 'Banner đã được xóa.']);
+            return response()->json(['success' => true, 'message' => 'Ảnh banner đã được xóa.']);
         }
-        return response()->json(['success' => false, 'message' => 'Không tìm thấy banner.']);
+        return response()->json(['success' => false, 'message' => 'Không có ảnh banner để xóa.'], 404);
     }
 
+    /**
+     * Remove a gallery image from the specified resource.
+     */
     public function deleteGallery(Request $request, Post $post)
     {
-        // Chỉ Admin mới được xóa ảnh gallery
-        if (Auth::user()->role !== 'Admin') {
-             return response()->json(['success' => false, 'message' => 'Không có quyền.'], 403);
+        $imagePath = $request->input('image');
+        if ($post->gallery_images && is_array($post->gallery_images)) {
+            $gallery = $post->gallery_images;
+            if (($key = array_search($imagePath, $gallery)) !== false) {
+                Storage::disk('public')->delete($imagePath);
+                unset($gallery[$key]);
+                $post->gallery_images = array_values($gallery); 
+                $post->save();
+                return response()->json(['success' => true, 'message' => 'Ảnh trong thư viện đã được xóa.']);
+            }
         }
-
-        $imageToDelete = $request->input('image');
-        $galleryImages = json_decode($post->gallery_images, true);
-
-        if (is_array($galleryImages) && ($key = array_search($imageToDelete, $galleryImages)) !== false) {
-            Storage::delete('public/' . $imageToDelete);
-            unset($galleryImages[$key]);
-            $post->gallery_images = json_encode(array_values($galleryImages)); // Re-index array
-            $post->save();
-            return response()->json(['success' => true, 'message' => 'Ảnh đã được xóa khỏi thư viện.']);
-        }
-        return response()->json(['success' => false, 'message' => 'Không tìm thấy ảnh hoặc lỗi khi xóa.']);
+        return response()->json(['success' => false, 'message' => 'Không tìm thấy ảnh hoặc có lỗi xảy ra.'], 404);
     }
 
+    /**
+     * Export posts to an Excel file.
+     */
     public function exportPosts()
     {
-        // Chỉ Admin được export
-        if (Auth::user()->role !== 'Admin') {
-            return redirect()->route('user.dashboard')->with('error', 'Bạn không có quyền thực hiện hành động này.');
-        }
-        return Excel::download(new PostsExport, 'danh_sach_bai_dang.xlsx');
+        return Excel::download(new PostsExport, 'danh-sach-bai-viet.xlsx');
     }
-
-public function listdanhsach()
-{
-    $posts = Post::with('user', 'category.parent')->latest()->get();
-    $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get();
-    
-    
-    $childCategories = Category::whereNotNull('parent_id')->orderBy('name')->get(); 
-    
-    return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories'));
-}
-// Trong tệp app/Http/Controllers/PostController.php
-
-public function postsByCategory(Category $category)
-{
-    $categoryIds = $category->children()->pluck('id')->push($category->id);
-
-    $posts = Post::whereIn('category_id', $categoryIds)
-                 ->with('user', 'category.parent') // Eager load thêm parent
-                 ->latest()
-                 ->get();
-    
-    // Lấy thêm dữ liệu danh mục cho bộ lọc
-    $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get();
-    $childCategories = Category::whereNotNull('parent_id')->orderBy('name')->get()->groupBy('parent_id');
-
-    return view('posts.listdanhsach', compact('posts', 'category', 'parentCategories', 'childCategories'));
-}
 }

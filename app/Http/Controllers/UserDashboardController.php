@@ -2,25 +2,69 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
+use App\Models\Category; // <-- Đảm bảo bạn đã `use`
 use Illuminate\Http\Request;
-use App\Models\Post; // Import Post model
-use Carbon\Carbon; // Vẫn có thể cần cho định dạng ngày tháng trong view
 
 class UserDashboardController extends Controller
 {
-    /**
-     * Display the user's dashboard with general posts.
-     *
-     * @return \Illuminate\View\View
-     */
     public function index()
     {
-        // Lựa chọn 1: Lấy TẤT CẢ bài viết trong hệ thống, mới nhất lên đầu, và phân trang.
-        $posts = Post::with('user', 'category.parent') // Eager load để tối ưu truy vấn
-                       ->latest()                      // Sắp xếp mới nhất lên đầu
-                       ->paginate(9);                 // Phân trang, ví dụ 9 bài một trang
+        // 1. Lấy 3 bài viết trending (mới nhất)
+        $trendingPosts = Post::with(['category.parent', 'user'])
+                           ->orderBy('created_at', 'desc')
+                           ->take(3)
+                           ->get();
 
+        // 2. Lấy ID của 3 bài trending đó
+        $trendingIds = $trendingPosts->pluck('id');
 
-        return view('user.user_dashboard', compact('posts'));
+        // 3. Lấy các bài viết còn lại (phân trang, 9 bài/trang)
+        $posts = Post::with(['category.parent', 'user'])
+                         ->whereNotIn('id', $trendingIds)
+                         ->orderBy('created_at', 'desc')
+                         ->paginate(9); // 9 bài cho lưới (grid)
+
+        // 4. Lấy bài cho mục "Công nghệ" (Lấy 5 bài)
+        $congNghePosts = Post::with(['category.parent', 'user'])
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'Công nghệ')
+                      ->orWhereHas('parent', function ($q) {
+                          $q->where('name', 'Công nghệ');
+                      });
+            })
+            ->whereNotIn('id', $trendingIds)
+            ->orderBy('created_at', 'desc')
+            ->take(5) 
+            ->get();
+        
+        // 5. Lấy bài cho mục "Ngân Hàng" (Lấy 5 bài)
+        $nganHangPosts = Post::with(['category.parent', 'user'])
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'Ngân Hàng')
+                      ->orWhereHas('parent', function ($q) {
+                          $q->where('name', 'Ngân Hàng');
+                      });
+            })
+            ->whereNotIn('id', $trendingIds)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        // 6. Lấy danh sách danh mục (cho thanh điều hướng ngang)
+        //    (Lấy danh mục cha và các danh mục con phổ biến)
+        $categories = Category::whereNull('parent_id')
+                              ->with('children') 
+                              ->orderBy('name', 'asc')
+                              ->get();
+        
+        // 7. Gửi tất cả biến tới view
+        return view('guest.index', compact( // Sửa 'user.user_dashboard' thành 'guest.index'
+            'trendingPosts',
+            'posts',
+            'congNghePosts',
+            'nganHangPosts',
+            'categories'
+        ));
     }
 }

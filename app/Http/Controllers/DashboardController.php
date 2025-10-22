@@ -4,12 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth; // <-- Thêm dòng này
 
 class DashboardController extends Controller
 {
     // Hiển thị trang dashboard
     public function index()
     {
+        // ĐÃ CẬP NHẬT: Thêm logic kiểm tra vai trò
+        if (Auth::user()->role === 'User') {
+            // Nếu là User, chuyển hướng đến trang dashboard của User
+            return redirect()->route('guest.home'); // Sửa 'user.dashboard' thành 'guest.home'
+        }
+
+        // Nếu là Admin (hoặc vai trò khác), tiếp tục hiển thị trang dashboard của Admin
+
         // Lấy tất cả bài viết
         $posts = Post::all();
 

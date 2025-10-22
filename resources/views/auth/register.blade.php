@@ -64,8 +64,6 @@
         </div>
     </form>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         function checkEmail() {
             const email = document.getElementById("email").value.trim();

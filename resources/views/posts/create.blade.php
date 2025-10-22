@@ -134,7 +134,6 @@
     </div>
 
     {{-- SweetAlert & CKEditor --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
 
     {{-- Custom Styles --}}
@@ -147,6 +146,9 @@
             min-height: 250px;
             color: #333;
         }
+        .cke_notifications_area {
+    display: none !important;
+}
     </style>
 
     {{-- Custom Scripts --}}
