@@ -17,20 +17,15 @@ class PostController extends Controller
      */
     public function listPosts(Request $request)
     {
-        // ===== ĐÃ CẬP NHẬT: Thêm lại các biến cần thiết =====
         $parentCategories = Category::whereNull('parent_id')->with('children')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
-
         $query = Post::with(['category', 'user'])->orderBy('created_at', 'desc');
-
         if ($request->filled('search')) {
             $query->where('title', 'like', '%' . $request->search . '%');
         }
-
         if ($request->filled('child_category_id')) {
             $query->where('category_id', $request->child_category_id);
-        }
-        elseif ($request->filled('parent_category_id')) {
+        } elseif ($request->filled('parent_category_id')) {
             $parentCategory = Category::with('children')->find($request->parent_category_id);
             if ($parentCategory) {
                 $categoryIds = $parentCategory->children->pluck('id')->all();
@@ -39,20 +34,10 @@ class PostController extends Controller
                 }
             }
         }
-
         $posts = $query->paginate(10)->withQueryString();
-
         $totalPosts = Post::count();
         $postsThisMonth = Post::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-
-        return view('posts.listdanhsach', compact(
-            'posts',
-            'parentCategories',
-            'childCategories', // <-- Biến đã được thêm lại
-            'totalPosts',
-            'postsThisMonth'
-        ));
-        // ====================================================
+        return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories', 'totalPosts', 'postsThisMonth'));
     }
 
     /**
@@ -60,19 +45,13 @@ class PostController extends Controller
      */
     public function postsByCategory(Category $category)
     {
-        // ===== ĐÃ CẬP NHẬT: Thêm lại các biến cần thiết =====
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
-        // ====================================================
-        
         $categoryIds = $category->children()->pluck('id')->push($category->id);
         $posts = Post::with(['category', 'user'])->whereIn('category_id', $categoryIds)->orderBy('created_at', 'desc')->paginate(12);
         $categoryName = $category->name;
-        
-        // Thống kê (thêm vào để view không bị lỗi)
         $totalPosts = Post::count();
         $postsThisMonth = Post::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-
         return view('posts.listdanhsach', compact('posts', 'parentCategories', 'childCategories', 'categoryName', 'totalPosts', 'postsThisMonth'));
     }
 
@@ -91,7 +70,6 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-       // dd($request->all());
         $validatedData = $request->validate([
             'title' => 'required|max:100',
             'short_description' => 'required|max:200',
@@ -101,20 +79,28 @@ class PostController extends Controller
             'gallery_images' => 'nullable|array|min:2|max:5',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
-        
-        $post = new Post($validatedData);
+
+        // ===== ĐÃ CẬP NHẬT: Gán tường minh, bỏ mass assignment =====
+        $post = new Post();
         $post->user_id = Auth::id();
+        $post->title = $validatedData['title'];
+        $post->short_description = $validatedData['short_description'];
+        $post->content = $validatedData['content'];
+        $post->category_id = $validatedData['category_id'];
+        // ==========================================================
 
         if ($request->hasFile('banner_image')) {
             $post->banner_image = $request->file('banner_image')->store('post_banners', 'public');
         }
 
         if ($request->hasFile('gallery_images')) {
-            $gallery = [];
+            $galleryPaths = [];
             foreach ($request->file('gallery_images') as $image) {
-                $gallery[] = $image->store('post_gallery', 'public');
+                $galleryPaths[] = $image->store('post_gallery', 'public');
             }
-            $post->gallery_images = $gallery;
+            $post->gallery_images = $galleryPaths;
+        } else {
+            $post->gallery_images = []; // Đảm bảo trường này là mảng rỗng nếu không có ảnh
         }
 
         $post->save();
@@ -163,7 +149,12 @@ class PostController extends Controller
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
 
-        $post->fill($validatedData);
+        // ===== ĐÃ CẬP NHẬT: Gán tường minh, bỏ mass assignment =====
+        $post->title = $validatedData['title'];
+        $post->short_description = $validatedData['short_description'];
+        $post->content = $validatedData['content'];
+        $post->category_id = $validatedData['category_id'];
+        // ========================================================
 
         if ($request->hasFile('banner_image')) {
             if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
@@ -195,35 +186,25 @@ class PostController extends Controller
         $post->delete();
         return redirect()->route('posts.list')->with('success', 'Bài viết đã được xóa thành công.');
     }
+
     public function bulkDestroy(Request $request)
     {
-        // Validate an array of post IDs is present.
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:posts,id',
         ]);
-
         $postIds = $request->input('ids');
         $posts = Post::whereIn('id', $postIds)->get();
-
         foreach ($posts as $post) {
-            // Xóa ảnh banner
-            if ($post->banner_image) {
-                Storage::disk('public')->delete($post->banner_image);
-            }
-            // Xóa ảnh gallery
+            if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
             if (is_array($post->gallery_images)) {
-                foreach ($post->gallery_images as $image) {
-                    Storage::disk('public')->delete($image);
-                }
+                foreach ($post->gallery_images as $image) { Storage::disk('public')->delete($image); }
             }
         }
-
-        // Xóa các bài viết khỏi database
         Post::destroy($postIds);
-
         return redirect()->route('posts.list')->with('success', count($postIds) . ' bài viết đã được xóa thành công.');
     }
+
     public function deleteBanner(Post $post)
     {
         if ($post->banner_image) {
