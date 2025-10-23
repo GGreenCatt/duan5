@@ -43,12 +43,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Post Management (Admin)
         Route::prefix('admin/posts')->name('posts.')->group(function () {
             
+            // ===== THÊM LẠI ROUTE GÂY LỖI =====
             // Route này sẽ xử lý cho tên `posts.index`
             Route::get('/', [PostController::class, 'listPosts'])->name('index'); 
             // ===================================
-            Route::delete('/bulk-delete', [PostController::class, 'bulkDestroy'])->name('bulkDestroy');
-
+            
             Route::get('/list', [PostController::class, 'listPosts'])->name('list');
+            Route::delete('/bulk-delete', [PostController::class, 'bulkDestroy'])->name('bulkDestroy');
             Route::get('/create', [PostController::class, 'create'])->name('create');
             Route::post('/', [PostController::class, 'store'])->name('store');
             Route::get('/{post}/edit', [PostController::class, 'edit'])->name('edit');

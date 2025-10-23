@@ -194,7 +194,6 @@ class PostController extends Controller
         $post->delete();
         return redirect()->route('posts.list')->with('success', 'Bài viết đã được xóa thành công.');
     }
-
     public function bulkDestroy(Request $request)
     {
         // Validate an array of post IDs is present.

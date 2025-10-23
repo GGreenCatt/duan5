@@ -170,42 +170,42 @@
             form.addEventListener('change', () => isFormChanged = true);
             CKEDITOR.instances.content.on('change', () => isFormChanged = true);
 
-    // --- Category Dropdown Logic (jQuery version) ---
-    $(document).ready(function() {
-    $('#parent_category').on('change', function() {
-        // Lấy ID của danh mục cha đã chọn
-        let parentId = $(this).val();
-        let childSelect = $('#category_id');
-        let childError = $('#category_id-error');
+            // --- Category Dropdown Logic ---
+            const parentSelect = document.getElementById('parent_category');
+            const childSelect = document.getElementById('category_id');
+            const childError = document.getElementById('category_id-error');
+            const allChildOptions = Array.from(childSelect.options);
 
-        // Vô hiệu hóa và reset ô chọn con
-        childSelect.val("").prop('disabled', true);
-        childError.hide();
+            parentSelect.addEventListener('change', function () {
+                const selectedParentId = this.value;
+                let hasVisibleChildOptions = false;
 
-        // Nếu không có danh mục cha nào được chọn
-        if (!parentId) {
-            childSelect.find('option').addClass('hidden'); // Ẩn tất cả
-            childSelect.find('option:first').removeClass('hidden').text('-- Vui lòng chọn danh mục cha --');
-            childError.text('*(Vui lòng chọn danh mục cha trước.)').show();
-            return;
-        }
+                // Reset child select
+                childSelect.value = "";
+                childSelect.disabled = !selectedParentId;
+                childSelect.innerHTML = `<option value="">-- ${selectedParentId ? 'Chọn danh mục con' : 'Vui lòng chọn danh mục cha'} --</option>`;
 
-        // Ẩn tất cả các lựa chọn con trước
-        childSelect.find('option[data-parent]').addClass('hidden');
+                allChildOptions.forEach(opt => {
+                    if (opt.dataset.parent === selectedParentId) {
+                        childSelect.appendChild(opt);
+                        opt.classList.remove('hidden');
+                        hasVisibleChildOptions = true;
+                    } else if (opt.value !== "") {
+                        opt.classList.add('hidden');
+                    }
+                });
 
-        // Tìm và hiển thị các lựa chọn con phù hợp
-        let children = childSelect.find('option[data-parent="' + parentId + '"]');
-        
-        if (children.length > 0) {
-            children.removeClass('hidden'); // Hiển thị các con phù hợp
-            childSelect.prop('disabled', false); // Bật lại ô chọn
-            childSelect.find('option:first').text('-- Chọn danh mục con --');
-        } else {
-            childSelect.find('option:first').text('-- Không có danh mục con --');
-            childError.text('*(Không có danh mục con cho mục cha đã chọn.)').show();
-        }
-    });
-});
+                if (selectedParentId && !hasVisibleChildOptions) {
+                    childError.innerText = "*(Không có danh mục con cho mục cha đã chọn.)";
+                    childError.style.display = 'block';
+                    childSelect.disabled = true;
+                } else if (!selectedParentId) {
+                    childError.innerText = "*(Vui lòng chọn danh mục cha trước.)";
+                    childError.style.display = 'block';
+                } else {
+                    childError.style.display = 'none';
+                }
+            });
 
             // --- Drag & Drop for File Uploads ---
             function setupDragDrop(zoneId, inputId) {

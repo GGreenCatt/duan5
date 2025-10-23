@@ -84,11 +84,15 @@
                              <a href="{{ route('posts.export') }}" class="w-full md:w-auto text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md">Xuất Excel</a>
                         </div>
                     </div>
+                    
+                   {{-- ===== FORM CHO HÀNH ĐỘNG HÀNG LOẠT (ĐÃ CẬP NHẬT) ===== --}}
                     <form id="bulk-action-form" action="{{ route('posts.bulkDestroy') }}" method="POST">
                         @csrf
                         @method('DELETE')
                         {{-- JavaScript sẽ điền các input ẩn vào đây --}}
                     </form>
+                    {{-- ======================================================== --}}
+
                     <div class="mb-4">
                         <button id="bulk-delete-btn" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md opacity-50 cursor-not-allowed" disabled>
                             Xóa các mục đã chọn
