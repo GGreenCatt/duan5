@@ -94,7 +94,7 @@
                                     @foreach ($post->gallery_images as $image)
                                         <div class="relative gallery-item" data-image="{{ $image }}" style="width: 64px; height: 64px;">
                                             <img src="{{ asset('storage/' . $image) }}" alt="Gallery" class="w-full h-full object-cover rounded">
-                                            <span class="delete-btn" onclick="deleteGalleryImage(event, '{{ $image }}')">×</span>
+                                            <span class="delete-btn" onclick="deleteGalleryImage('{{ $image }}')">×</span>
                                         </div>
                                     @endforeach
                                 </div>

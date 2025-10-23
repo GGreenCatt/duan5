@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
-
 class CategoryController extends Controller
 {
     /**
@@ -16,17 +15,13 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        // Lấy danh sách danh mục cha đã phân trang để hiển thị
         $categories_paginated = Category::with(['children.posts', 'posts'])
                                 ->whereNull('parent_id')
                                 ->withCount('posts')
                                 ->orderBy('name', 'asc')
-                                ->paginate(5); // Phân trang 5 danh mục cha mỗi trang
-
-        // Lấy TẤT CẢ danh mục cha để điền vào form "Thêm mới"
+                                ->paginate(5);
         $all_parent_categories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         
-        // Trả về view với cả 2 biến
         return view('categories.index', [
             'categories' => $categories_paginated,
             'parent_categories_for_form' => $all_parent_categories
@@ -55,10 +50,6 @@ class CategoryController extends Controller
         ]);
     
         $category = new Category($validatedData);
-        
-        // ===== DÒNG GÂY LỖI ĐÃ BỊ XÓA =====
-        // $category->user_id = Auth::id();
-        // ===================================
     
         if ($request->hasFile('image')) {
             $category->image = $request->file('image')->store('category_images', 'public');
@@ -83,8 +74,11 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        $parentCategories = Category::whereNull('parent_id')->where('id', '!=', $category->id)->get();
-        return view('categories.edit', compact('category', 'parentCategories'));
+        // ===== ĐÃ CẬP NHẬT TÊN BIẾN CHO ĐÚNG =====
+        // View edit.blade.php cần biến $categories cho dropdown
+        $categories = Category::whereNull('parent_id')->where('id', '!=', $category->id)->get();
+        return view('categories.edit', compact('category', 'categories'));
+        // ==========================================
     }
 
     /**
@@ -127,6 +121,7 @@ class CategoryController extends Controller
     
         return redirect()->route('categories.index')->with('success', 'Danh mục đã được xóa thành công.');
     }
+
      public function deleteImage(Category $category)
     {
         if ($category->image) {
