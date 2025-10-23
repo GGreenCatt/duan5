@@ -72,24 +72,29 @@
 
                         <div class="mb-4">
                             <label for="banner_image" class="block text-sm font-medium text-white">Banner ảnh</label>
-                            <input type="file" id="banner_image" name="banner_image" class="mt-1 block w-full bg-gray-800 text-white" />
-                            @if ($post->banner_image)
-                                <div id="banner-container" class="mt-2 relative" style="width: 128px; height: 128px;">
-                                    <img src="{{ asset('storage/' . $post->banner_image) }}" alt="Banner hiện tại" class="w-full h-full object-cover rounded">
-                                    <span class="delete-btn" onclick="deleteBannerImage()">×</span>
-                                </div>
-                            @endif
+                            <input type="file" id="banner_image" name="banner_image" class="mt-1 block w-full bg-gray-800 text-white" accept="image/*" />
+                            <div id="banner-display-area" class="mt-2">
+                                @if ($post->banner_image)
+                                    <div id="banner-container" class="relative" style="width: 128px; height: 128px;">
+                                        <img src="{{ asset('storage/' . $post->banner_image) }}" alt="Banner hiện tại" class="w-full h-full object-cover rounded">
+                                        <span class="delete-btn" onclick="deleteBannerImage(event)">×</span>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
 
                         <div class="mb-4">
                             <label for="gallery_images" class="block text-sm font-medium text-white">Ảnh thư viện</label>
-                            <input type="file" id="gallery_images" name="gallery_images[]" class="mt-1 block w-full bg-gray-800 text-white" multiple />
+                            <input type="file" id="gallery_images" name="gallery_images[]" class="mt-1 block w-full bg-gray-800 text-white" multiple accept="image/*" />
+                            <p id="new-gallery-heading" class="text-sm text-gray-400 mt-4" style="display: none;">Ảnh mới chọn (có thể xóa):</p>
+                            <div id="gallery-preview-container" class="mt-2 flex gap-2 flex-wrap"></div>
                             @if ($post->gallery_images && count($post->gallery_images) > 0)
+                                <p class="text-sm text-gray-400 mt-4">Ảnh hiện tại:</p>
                                 <div class="mt-2 flex gap-2 flex-wrap" id="gallery-container">
                                     @foreach ($post->gallery_images as $image)
                                         <div class="relative gallery-item" data-image="{{ $image }}" style="width: 64px; height: 64px;">
                                             <img src="{{ asset('storage/' . $image) }}" alt="Gallery" class="w-full h-full object-cover rounded">
-                                            <span class="delete-btn" onclick="deleteGalleryImage('{{ $image }}')">×</span>
+                                            <span class="delete-btn" onclick="deleteGalleryImage(event, '{{ $image }}')">×</span>
                                         </div>
                                     @endforeach
                                 </div>
@@ -180,6 +185,89 @@
             } else {
                 window.removeEventListener('beforeunload', handleBeforeUnload);
                 window.location.href = '{{ route("posts.list") }}';
+            }
+        });
+
+document.addEventListener('DOMContentLoaded', function() {
+            // ===== SCRIPT MỚI CHO HIỂN THỊ ẢNH PREVIEW VÀ NÚT XÓA (ĐÃ SỬA LỖI) =====
+
+            // -- Xử lý Banner --
+            const bannerInput = document.getElementById('banner_image');
+            const bannerDisplayArea = document.getElementById('banner-display-area');
+            
+            bannerInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                bannerDisplayArea.innerHTML = ''; 
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        bannerDisplayArea.innerHTML = `
+                            <div class="relative" style="width: 128px; height: 128px;">
+                                <img src="${e.target.result}" class="w-full h-full object-cover rounded">
+                                <span class="delete-btn" style="display: block;" onclick="removeNewBannerImage(event)">×</span>
+                            </div>
+                        `;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            window.removeNewBannerImage = function(event) {
+                event.stopPropagation();
+                bannerInput.value = '';
+                bannerDisplayArea.innerHTML = '';
+                formChanged = true;
+            }
+
+            // -- Xử lý Gallery --
+            const galleryInput = document.getElementById('gallery_images');
+            const galleryPreviewContainer = document.getElementById('gallery-preview-container');
+            const newGalleryHeading = document.getElementById('new-gallery-heading');
+
+            galleryInput.addEventListener('change', function() {
+                renderGalleryPreview();
+            });
+            
+            function renderGalleryPreview() {
+                galleryPreviewContainer.innerHTML = '';
+                const files = galleryInput.files;
+
+                if (files.length > 0) {
+                    newGalleryHeading.style.display = 'block';
+                    Array.from(files).forEach((file, index) => {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const div = document.createElement('div');
+                            div.className = 'relative gallery-item-new';
+                            div.style.width = '64px';
+                            div.style.height = '64px';
+                            div.innerHTML = `
+                                <img src="${e.target.result}" class="w-full h-full object-cover rounded">
+                                <span class="delete-btn" style="display: block;" onclick="removeNewGalleryImage(event, ${index})">×</span>
+                            `;
+                            galleryPreviewContainer.appendChild(div);
+                        }
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    newGalleryHeading.style.display = 'none';
+                }
+            }
+
+            window.removeNewGalleryImage = function(event, index) {
+                event.stopPropagation();
+                const dt = new DataTransfer();
+                const files = galleryInput.files;
+                
+                for (let i = 0; i < files.length; i++) {
+                    if (i !== index) {
+                        dt.items.add(files[i]);
+                    }
+                }
+                
+                galleryInput.files = dt.files;
+                formChanged = true;
+                renderGalleryPreview();
             }
         });
 
