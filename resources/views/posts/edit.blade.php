@@ -72,43 +72,28 @@
 
                         <div class="mb-4">
                             <label for="banner_image" class="block text-sm font-medium text-white">Banner ảnh</label>
-                            <input type="file" id="banner_image" name="banner_image"
-                                class="mt-1 block w-full bg-gray-800 text-white" />
+                            <input type="file" id="banner_image" name="banner_image" class="mt-1 block w-full bg-gray-800 text-white" />
                             @if ($post->banner_image)
                                 <div id="banner-container" class="mt-2 relative" style="width: 128px; height: 128px;">
-                                    <img src="{{ asset('storage/' . $post->banner_image) }}" alt="Banner hiện tại"
-                                        class="w-full h-full object-cover rounded">
+                                    <img src="{{ asset('storage/' . $post->banner_image) }}" alt="Banner hiện tại" class="w-full h-full object-cover rounded">
                                     <span class="delete-btn" onclick="deleteBannerImage()">×</span>
                                 </div>
                             @endif
-                            @error('banner_image')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <div class="mb-4">
                             <label for="gallery_images" class="block text-sm font-medium text-white">Ảnh thư viện</label>
-                            <input type="file" id="gallery_images" name="gallery_images[]"
-                                class="mt-1 block w-full bg-gray-800 text-white" multiple />
-                            
-                            {{-- ===== ĐÃ SỬA LẠI LOGIC NÀY (BỎ json_decode) ===== --}}
-                            @if ($post->gallery_images && is_array($post->gallery_images) && count($post->gallery_images) > 0)
+                            <input type="file" id="gallery_images" name="gallery_images[]" class="mt-1 block w-full bg-gray-800 text-white" multiple />
+                            @if ($post->gallery_images && count($post->gallery_images) > 0)
                                 <div class="mt-2 flex gap-2 flex-wrap" id="gallery-container">
                                     @foreach ($post->gallery_images as $image)
-                                        <div class="relative gallery-item" data-image="{{ $image }}"
-                                            style="width: 64px; height: 64px;">
-                                            <img src="{{ asset('storage/' . $image) }}" alt="Gallery"
-                                                class="w-full h-full object-cover rounded">
+                                        <div class="relative gallery-item" data-image="{{ $image }}" style="width: 64px; height: 64px;">
+                                            <img src="{{ asset('storage/' . $image) }}" alt="Gallery" class="w-full h-full object-cover rounded">
                                             <span class="delete-btn" onclick="deleteGalleryImage('{{ $image }}')">×</span>
                                         </div>
                                     @endforeach
                                 </div>
                             @endif
-                            {{-- ================================================= --}}
-
-                             @error('gallery_images.*')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <x-primary-button type="button" id="confirmUpdate">Cập nhật bài viết</x-primary-button>
@@ -200,44 +185,97 @@
 
         function deleteBannerImage() {
             Swal.fire({
-                title: 'Bạn chắc chắn xóa banner?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
+                title: 'Bạn chắc chắn xóa banner?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('posts.deleteBanner', $post->id) }}", {
                         method: 'DELETE',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', }
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        }
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire('Đã xóa!', 'Banner đã được xóa.', 'success').then(() => {
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Server responded with an error!');
+                        }
+                        return response.text(); // Đọc response dưới dạng text
+                    })
+                    .then(text => {
+                        try {
+                            const jsonStart = text.indexOf('{');
+                            const jsonString = (jsonStart !== -1) ? text.substring(jsonStart) : text;
+                            const data = JSON.parse(jsonString);
+
+                            if (data.success) {
+                                Swal.fire('Đã xóa!', data.message, 'success');
                                 document.getElementById('banner-container')?.remove();
                                 formChanged = true;
-                            });
-                        } else { Swal.fire('Lỗi!', data.message || 'Không thể xóa banner.', 'error'); }
-                    }).catch(error => Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xóa banner.', 'error'));
+                            } else {
+                                Swal.fire('Lỗi!', data.message || 'Không thể xóa banner.', 'error');
+                            }
+                        } catch (e) {
+                             throw new Error('Failed to parse server response as JSON.');
+                        }
+                    }).catch(error => {
+                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xử lý phản hồi.', 'error');
+                        console.error('Error:', error);
+                    });
                 }
             });
         }
 
         function deleteGalleryImage(imageName) {
             Swal.fire({
-                title: 'Xóa ảnh này?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
+                title: 'Xóa ảnh này?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('posts.deleteGallery', $post->id) }}", {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', },
-                        body: JSON.stringify({ image: imageName, _method: 'DELETE' })
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ image_path: imageName })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire('Đã xóa!', 'Ảnh đã được xóa khỏi thư viện.', 'success');
-                            document.querySelector(`.gallery-item[data-image="${imageName}"]`)?.remove();
-                            formChanged = true;
-                        } else { Swal.fire('Lỗi!', data.message || 'Không thể xóa ảnh.', 'error'); }
-                    }).catch(error => Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xóa ảnh.', 'error'));
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Server responded with an error!');
+                        }
+                        // 1. Lấy response dưới dạng text
+                        return response.text();
+                    })
+                    .then(text => {
+                        // 2. Cố gắng tìm và parse chuỗi JSON từ text
+                        try {
+                            const jsonStart = text.indexOf('{');
+                            const jsonString = (jsonStart !== -1) ? text.substring(jsonStart) : text;
+                            const data = JSON.parse(jsonString);
+
+                            // 3. Xử lý logic thành công/thất bại
+                            if (data.success) {
+                                Swal.fire('Đã xóa!', data.message, 'success');
+                                document.querySelector(`.gallery-item[data-image="${imageName}"]`)?.remove();
+                                formChanged = true;
+                            } else {
+                                Swal.fire('Lỗi!', data.message || 'Không thể xóa ảnh.', 'error');
+                            }
+                        } catch (e) {
+                             throw new Error('Failed to parse server response as JSON.');
+                        }
+                    }).catch(error => {
+                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xử lý phản hồi. Vui lòng kiểm tra console.', 'error');
+                        console.error('Error:', error);
+                    });
                 }
             });
         }

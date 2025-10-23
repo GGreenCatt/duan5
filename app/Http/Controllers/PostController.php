@@ -91,6 +91,7 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+       // dd($request->all());
         $validatedData = $request->validate([
             'title' => 'required|max:100',
             'short_description' => 'required|max:200',
@@ -100,7 +101,7 @@ class PostController extends Controller
             'gallery_images' => 'nullable|array|min:2|max:5',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
-
+        
         $post = new Post($validatedData);
         $post->user_id = Auth::id();
 
@@ -236,7 +237,7 @@ class PostController extends Controller
 
     public function deleteGallery(Request $request, Post $post)
     {
-        $imagePath = $request->input('image');
+        $imagePath = $request->input('image_path');
         if ($post->gallery_images && is_array($post->gallery_images)) {
             $gallery = $post->gallery_images;
             if (($key = array_search($imagePath, $gallery)) !== false) {

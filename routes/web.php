@@ -43,11 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Post Management (Admin)
         Route::prefix('admin/posts')->name('posts.')->group(function () {
             
-            // ===== THÊM LẠI ROUTE GÂY LỖI =====
-            // Route này sẽ xử lý cho tên `posts.index`
             Route::get('/', [PostController::class, 'listPosts'])->name('index'); 
-            // ===================================
-            
             Route::get('/list', [PostController::class, 'listPosts'])->name('list');
             Route::delete('/bulk-delete', [PostController::class, 'bulkDestroy'])->name('bulkDestroy');
             Route::get('/create', [PostController::class, 'create'])->name('create');
@@ -56,7 +52,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{post}', [PostController::class, 'update'])->name('update');
             Route::delete('/{post}', [PostController::class, 'destroy'])->name('destroy');
             Route::delete('/{post}/delete-banner', [PostController::class, 'deleteBanner'])->name('deleteBanner');
-            Route::post('/{post}/delete-gallery', [PostController::class, 'deleteGallery'])->name('deleteGallery');
+            
+            // ===== ĐỔI TỪ POST THÀNH DELETE Ở ĐÂY =====
+            Route::delete('/{post}/delete-gallery', [PostController::class, 'deleteGallery'])->name('deleteGallery');
+            // ==========================================
+            
             Route::get('/export', [PostController::class, 'exportPosts'])->name('export');
             Route::get('/category/{category}', [PostController::class, 'postsByCategory'])->name('admin.by_category');
         });
