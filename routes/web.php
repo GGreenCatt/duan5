@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [UserDashboardController::class, 'index']);
-Route::get('/home', [UserDashboardController::class, 'index'])->name('guest.home');
+Route::get('/', [UserDashboardController::class, 'index'])->name('guest.home');
 Route::get('/about-us', function () { return view('guest.about'); })->name('about');
 Route::get('/posts', [UserPostController::class, 'index'])->name('guest.posts.index');
 Route::get('/posts/category/{category}', [UserPostController::class, 'postsByCategory'])->name('guest.posts.by_category');
