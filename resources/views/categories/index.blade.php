@@ -80,7 +80,7 @@
                                 <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <a href="{{ route('posts.admin.by_category', $parent->id) }}" class="flex items-center group">
+                                            <a href="{{ route('posts.by_category', $parent->id) }}" class="flex items-center group">
                                                 <svg class="w-6 h-6 text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 mr-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                                                 <span class="font-semibold text-gray-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">{{ $parent->name }}</span>
                                             </a>
@@ -105,7 +105,7 @@
                                             @foreach ($parent->children as $child)
                                                 <div class="flex items-center justify-between">
                                                     <div class="flex items-center">
-                                                        <a href="{{ route('posts.admin.by_category', $child->id) }}" class="flex items-center group">
+                                                        <a href="{{ route('posts.by_category', $child->id) }}" class="flex items-center group">
                                                             <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 mr-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                             <span class="text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">{{ $child->name }}</span>
                                                         </a>
