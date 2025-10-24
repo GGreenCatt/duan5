@@ -14,7 +14,8 @@
                     
                     {{-- Bài viết chính (Bên trái) --}}
                     <div class="lg:col-span-2 group relative block bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden">
-                        <a href="{{ route('posts.show', $mainHeroPost) }}">
+                        {{-- CẬP NHẬT: Sửa $mainHeroPost thành $mainHeroPost->slug --}}
+                        <a href="{{ route('posts.show', $mainHeroPost->slug) }}">
                             <div class="h-[450px] w-full">
                                 @if($mainHeroPost->banner_image)
                                     <img src="{{ asset('storage/' . $mainHeroPost->banner_image) }}" alt="{{ $mainHeroPost->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
@@ -46,7 +47,8 @@
                     <div class="lg:col-span-1 space-y-6">
                         @foreach($sideHeroPosts as $post)
                         <div class="group relative block bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden h-[213px]">
-                            <a href="{{ route('posts.show', $post) }}">
+                            {{-- CẬP NHẬT: Sửa $post thành $post->slug --}}
+                            <a href="{{ route('posts.show', $post->slug) }}">
                                 @if($post->banner_image)
                                     <img src="{{ asset('storage/' . $post->banner_image) }}" alt="{{ $post->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
                                 @else
@@ -95,7 +97,8 @@
             @if(isset($posts) && $posts->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                     @foreach($posts as $post)
-                    <a href="{{ route('posts.show', $post) }}" class="group block bg-white dark:bg-gray-800 shadow-lg hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] dark:hover:shadow-[0_0_15px_rgba(129,140,248,0.5)] rounded-xl overflow-hidden transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col">
+                    {{-- CẬP NHẬT: Sửa $post thành $post->slug --}}
+                    <a href="{{ route('posts.show', $post->slug) }}" class="group block bg-white dark:bg-gray-800 shadow-lg hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] dark:hover:shadow-[0_0_15px_rgba(129,140,248,0.5)] rounded-xl overflow-hidden transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col">
                         <div class="h-48 w-full overflow-hidden">
                             @if($post->banner_image)
                                 <img src="{{ asset('storage/' . $post->banner_image) }}" alt="{{ $post->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
@@ -162,7 +165,8 @@
                     @if(isset($congNghePosts) && $congNghePosts->count() > 0)
                         <div class="space-y-4">
                             @foreach($congNghePosts as $post)
-                            <a href="{{ route('posts.show', $post) }}" class="group flex items-center space-x-3">
+                            {{-- CẬP NHẬT: Sửa $post thành $post->slug --}}
+                            <a href="{{ route('posts.show', $post->slug) }}" class="group flex items-center space-x-3">
                                 <div class="w-16 h-16 flex-shrink-0 overflow-hidden rounded-md">
                                     @if($post->banner_image)
                                         <img src="{{ asset('storage/' . $post->banner_image) }}" alt="{{ $post->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
@@ -193,7 +197,8 @@
                     @if(isset($nganHangPosts) && $nganHangPosts->count() > 0)
                         <div class="space-y-4">
                             @foreach($nganHangPosts as $post)
-                            <a href="{{ route('posts.show', $post) }}" class="group flex items-center space-x-3">
+                            {{-- CẬP NHẬT: Sửa $post thành $post->slug --}}
+                            <a href="{{ route('posts.show', $post->slug) }}" class="group flex items-center space-x-3">
                                 <div class="w-16 h-16 flex-shrink-0 overflow-hidden rounded-md">
                                     @if($post->banner_image)
                                         <img src="{{ asset('storage/' . $post->banner_image) }}" alt="{{ $post->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">

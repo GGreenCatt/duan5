@@ -119,10 +119,10 @@ class PostController extends Controller
                             ->take(4)
                             ->get();
         
-        if (auth()->check() && auth()->user()->role === 'Admin') {
-            return view('posts.show', compact('post', 'relatedPosts'));
-        }
+        // ===== CẬP NHẬT: Luôn trả về view của khách cho route này =====
+        // Bất kể ai truy cập (Admin hay Guest), URL công khai sẽ luôn hiển thị giao diện công khai.
         return view('guest.show', compact('post', 'relatedPosts'));
+        // =============================================================
     }
 
     /**
@@ -146,8 +146,8 @@ class PostController extends Controller
             'category_id' => 'required|exists:categories,id',
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'deleted_banner' => 'nullable|boolean', // Thêm validation cho banner xóa
-            'deleted_gallery_images' => 'nullable|array', // Thêm validation cho gallery xóa
+            'deleted_banner' => 'nullable|boolean',
+            'deleted_gallery_images' => 'nullable|array',
             'deleted_gallery_images.*' => 'string',
         ]);
 
@@ -156,43 +156,37 @@ class PostController extends Controller
         $post->content = $validatedData['content'];
         $post->category_id = $validatedData['category_id'];
 
-        // Xử lý xóa banner nếu được đánh dấu
         if ($request->input('deleted_banner') && $post->banner_image) {
             Storage::disk('public')->delete($post->banner_image);
             $post->banner_image = null;
         }
 
-        // Xử lý upload banner mới (nếu có)
         if ($request->hasFile('banner_image')) {
             if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
             $post->banner_image = $request->file('banner_image')->store('post_banners', 'public');
         }
 
-        // Xử lý xóa ảnh gallery nếu được đánh dấu
         $currentGallery = $post->gallery_images ?? [];
         if ($request->has('deleted_gallery_images')) {
             $imagesToDelete = $request->input('deleted_gallery_images');
             foreach ($imagesToDelete as $imagePath) {
                 Storage::disk('public')->delete($imagePath);
             }
-            // Loại bỏ các ảnh đã xóa khỏi mảng hiện tại
             $currentGallery = array_diff($currentGallery, $imagesToDelete);
         }
 
-        // Xử lý upload ảnh gallery mới (nếu có)
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $image) {
                 $currentGallery[] = $image->store('post_gallery', 'public');
             }
         }
         
-        $post->gallery_images = array_values($currentGallery); // Cập nhật lại mảng gallery
+        $post->gallery_images = array_values($currentGallery);
 
         $post->save();
 
         return redirect()->route('posts.list')->with('success', 'Bài viết đã được cập nhật thành công.');
     }
-
 
     /**
      * Remove the specified resource from storage.
