@@ -67,4 +67,18 @@ class UserDashboardController extends Controller
             'categories'
         ));
     }
+    public function allCategories()
+    {
+        // Lấy tất cả danh mục cha
+        // và eager load các danh mục con của chúng, đồng thời đếm số bài viết cho mỗi danh mục con
+        $parentCategories = Category::whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                $query->withCount('posts')->orderBy('name', 'asc');
+            }])
+            ->withCount('posts') // Đếm cả bài viết của chính danh mục cha
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return view('guest.categories', compact('parentCategories'));
+    }
 }

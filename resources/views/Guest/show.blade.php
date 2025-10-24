@@ -17,7 +17,7 @@
                             <span class="mx-2">&bull;</span>
                             <span>{{ $post->created_at->format('d/m/Y') }}</span>
                              <span class="mx-2">&bull;</span>
-                            <a href="{{ route('guest.posts.by_category', $post->category->id) }}" class="hover:underline">{{ $post->category->name }}</a>
+                            <a href="{{ route('guest.posts.by_category', $post->category->slug) }}" class="hover:underline">{{ $post->category->name }}</a>
                         </div>
                         
                         <div class="prose dark:prose-invert max-w-none text-lg text-gray-700 dark:text-gray-300 leading-relaxed">

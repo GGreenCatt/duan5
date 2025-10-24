@@ -114,7 +114,10 @@
             </div>
         </div>
     </div>
-
+<style> 
+    .cke_notifications_area {
+    display: none !important;
+</style>
     <script>
         CKEDITOR.replace('content');
 

@@ -76,12 +76,13 @@
 
 
             {{-- =============== BẮT ĐẦU PHẦN 2: THANH DANH MỤC =============== --}}
-            @if(isset($categories) && $categories->count() > 0)
+           @if(isset($categories) && $categories->count() > 0)
             <div class="mb-12 border-t border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center overflow-x-auto py-3 space-x-6">
                     <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex-shrink-0">Chủ đề:</span>
                     @foreach($categories as $category)
-                        <a href="{{ route('guest.posts.by_category', $category->id) }}" class="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                        {{-- SỬA Ở ĐÂY: $category->id thành $category->slug --}}
+                        <a href="{{ route('guest.posts.by_category', $category->slug) }}" class="flex-shrink-0 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                             {{ $category->name }}
                         </a>
                     @endforeach
@@ -160,7 +161,7 @@
                 <div>
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Công nghệ</h3>
-                        <a href="{{ route('guest.posts.by_category', ['category' => 1]) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">Xem thêm &rarr;</a>
+                        <a href="{{ route('guest.posts.by_category', ['category' => 'cong-nghe']) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">Xem thêm &rarr;</a>
                     </div>
                     @if(isset($congNghePosts) && $congNghePosts->count() > 0)
                         <div class="space-y-4">
@@ -192,7 +193,7 @@
                 <div>
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Ngân Hàng</h3>
-                        <a href="{{ route('guest.posts.by_category', ['category' => 2]) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">Xem thêm &rarr;</a>
+                        <a href="{{ route('guest.posts.by_category', ['category' => 'ngan-hang']) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">Xem thêm &rarr;</a>
                     </div>
                     @if(isset($nganHangPosts) && $nganHangPosts->count() > 0)
                         <div class="space-y-4">
