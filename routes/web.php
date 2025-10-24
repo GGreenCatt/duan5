@@ -51,7 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{post}', [PostController::class, 'update'])->name('update');
             Route::delete('/{post}', [PostController::class, 'destroy'])->name('destroy');
             Route::delete('/{post}/delete-banner', [PostController::class, 'deleteBanner'])->name('deleteBanner');
-            
+            Route::get('/{post}/show', [PostController::class, 'showForAdmin'])->name('show_for_admin');
             // ===== ĐỔI TỪ POST THÀNH DELETE Ở ĐÂY =====
             Route::delete('/{post}/delete-gallery', [PostController::class, 'deleteGallery'])->name('deleteGallery');
             // ==========================================

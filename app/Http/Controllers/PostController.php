@@ -13,9 +13,7 @@ use Illuminate\Support\Arr;
 
 class PostController extends Controller
 {
-    /**
-     * Hiển thị danh sách bài viết (CHỈ DÀNH CHO ADMIN).
-     */
+    // ... (Các phương thức listPosts, postsByCategory, create, store không đổi) ...
     public function listPosts(Request $request)
     {
         $parentCategories = Category::whereNull('parent_id')->with('children')->orderBy('name', 'asc')->get();
@@ -66,9 +64,6 @@ class PostController extends Controller
         return view('posts.create', compact('parentCategories', 'allCategories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -107,9 +102,6 @@ class PostController extends Controller
         return redirect()->route('posts.list')->with('success', 'Bài viết đã được tạo thành công.');
     }
     
-    /**
-     * Display the specified resource.
-     */
     public function show(Post $post)
     {
         $post->load(['category.parent', 'user']);
@@ -119,15 +111,15 @@ class PostController extends Controller
                             ->take(4)
                             ->get();
         
-        // ===== CẬP NHẬT: Luôn trả về view của khách cho route này =====
-        // Bất kể ai truy cập (Admin hay Guest), URL công khai sẽ luôn hiển thị giao diện công khai.
         return view('guest.show', compact('post', 'relatedPosts'));
-        // =============================================================
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function showForAdmin(Post $post)
+    {
+        $post->load(['category.parent', 'user']);
+        return view('posts.show', compact('post'));
+    }
+
     public function edit(Post $post)
     {
         $categories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
@@ -146,6 +138,7 @@ class PostController extends Controller
             'category_id' => 'required|exists:categories,id',
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            // ===== BỔ SUNG VALIDATION CHO CÁC TRƯỜNG ẨN =====
             'deleted_banner' => 'nullable|boolean',
             'deleted_gallery_images' => 'nullable|array',
             'deleted_gallery_images.*' => 'string',
@@ -156,41 +149,48 @@ class PostController extends Controller
         $post->content = $validatedData['content'];
         $post->category_id = $validatedData['category_id'];
 
-        if ($request->input('deleted_banner') && $post->banner_image) {
+        // Xử lý banner
+        if ($request->input('deleted_banner') == '1' && $post->banner_image) {
             Storage::disk('public')->delete($post->banner_image);
             $post->banner_image = null;
         }
-
         if ($request->hasFile('banner_image')) {
-            if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
+            if ($post->banner_image) {
+                Storage::disk('public')->delete($post->banner_image);
+            }
             $post->banner_image = $request->file('banner_image')->store('post_banners', 'public');
         }
 
+        // ===== LOGIC SỬA LỖI XÓA ẢNH THƯ VIỆN =====
         $currentGallery = $post->gallery_images ?? [];
+
+        // 1. Xử lý các ảnh được đánh dấu để xóa
         if ($request->has('deleted_gallery_images')) {
             $imagesToDelete = $request->input('deleted_gallery_images');
+            // Xóa file vật lý
             foreach ($imagesToDelete as $imagePath) {
                 Storage::disk('public')->delete($imagePath);
             }
+            // Loại bỏ các ảnh đã xóa khỏi mảng hiện tại
             $currentGallery = array_diff($currentGallery, $imagesToDelete);
         }
 
+        // 2. Thêm các ảnh mới được upload (nếu có)
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $image) {
                 $currentGallery[] = $image->store('post_gallery', 'public');
             }
         }
         
-        $post->gallery_images = array_values($currentGallery);
+        // 3. Cập nhật lại mảng gallery cho bài viết và re-index lại array
+        $post->gallery_images = array_values($currentGallery); 
+        // ===============================================
 
         $post->save();
 
         return redirect()->route('posts.list')->with('success', 'Bài viết đã được cập nhật thành công.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Post $post)
     {
         if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }

@@ -1,4 +1,3 @@
-{{-- SỬA LỖI: Chuyển từ component <x-guest_app-layout> sang @extends --}}
 @extends('layouts.guest_app')
 
 @section('content')
@@ -25,18 +24,20 @@
                             {!! $post->content !!}
                         </div>
 
+                        {{-- ===== CẬP NHẬT: Thêm data-fancybox vào gallery ===== --}}
                         @if($post->gallery_images && count($post->gallery_images) > 0)
                             <div class="mt-8">
                                 <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Thư viện ảnh</h3>
                                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     @foreach ($post->gallery_images as $image)
-                                        <a href="{{ asset('storage/' . $image) }}" data-fancybox="gallery">
+                                        <a href="{{ asset('storage/' . $image) }}" data-fancybox="gallery" data-caption="{{ $post->title }}">
                                             <img src="{{ asset('storage/' . $image) }}" alt="Gallery image" class="rounded-lg shadow-md transform hover:scale-105 transition-transform duration-300">
                                         </a>
                                     @endforeach
                                 </div>
                             </div>
                         @endif
+                        {{-- ====================================================== --}}
                     </div>
                 </div>
 
@@ -70,4 +71,3 @@
         </div>
     </div>
 @endsection
-{{-- SỬA LỖI: Xóa thẻ đóng </x-guest_app-layout> --}}

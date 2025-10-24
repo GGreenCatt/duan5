@@ -121,7 +121,7 @@
                                         <td data-label="Ngày tạo" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $post->created_at->format('d/m/Y') }}</td>
                                         <td data-label="Hành động" class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium actions-cell">
                                             <div class="flex items-center justify-center space-x-2">
-                                                <a href="{{ route('posts.show', $post->id) }}" target="_blank" class="p-2 text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 rounded-full" title="Xem"><i class="fas fa-eye"></i></a>
+                                                <a href="{{ route('posts.show_for_admin', $post->id) }}" class="p-2 text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 rounded-full" title="Xem"><i class="fas fa-eye"></i></a>
                                                 <a href="{{ route('posts.edit', $post->id) }}" class="p-2 text-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-full" title="Sửa"><i class="fas fa-edit"></i></a>
                                                 <a href="#" data-form-id="delete-form-{{ $post->id }}" class="p-2 text-red-500 bg-red-500/10 hover:bg-red-500/20 rounded-full btn-delete" title="Xóa"><i class="fas fa-trash"></i></a>
                                             </div>

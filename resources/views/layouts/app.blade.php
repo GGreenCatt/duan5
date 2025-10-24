@@ -9,6 +9,8 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        {{-- ===== BỔ SUNG: CSS cho Fancybox ===== --}}
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -26,11 +28,17 @@
 
             <main class="flex-grow">
                 {{ $slot }}
-            </main>
+            </main>>
+        </div>
         <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
         <script src="{{ asset('assets/js/sweetalert2.all.min.js') }}"></script>
         <script src="{{ asset('assets/css/sweetalert2.min.css') }}"></script>
-
-        </div>
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+        <script>
+            // Khởi tạo Fancybox
+            Fancybox.bind("[data-fancybox]", {
+              // Your custom options
+            });
+        </script>
     </body>
 </html>
