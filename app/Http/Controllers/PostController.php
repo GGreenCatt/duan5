@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Exports\PostsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Arr;
 
 class PostController extends Controller
 {
@@ -80,14 +81,12 @@ class PostController extends Controller
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
 
-        // ===== ĐÃ CẬP NHẬT: Gán tường minh, bỏ mass assignment =====
         $post = new Post();
         $post->user_id = Auth::id();
         $post->title = $validatedData['title'];
         $post->short_description = $validatedData['short_description'];
         $post->content = $validatedData['content'];
         $post->category_id = $validatedData['category_id'];
-        // ==========================================================
 
         if ($request->hasFile('banner_image')) {
             $post->banner_image = $request->file('banner_image')->store('post_banners', 'public');
@@ -100,7 +99,7 @@ class PostController extends Controller
             }
             $post->gallery_images = $galleryPaths;
         } else {
-            $post->gallery_images = []; // Đảm bảo trường này là mảng rỗng nếu không có ảnh
+            $post->gallery_images = [];
         }
 
         $post->save();
@@ -147,32 +146,53 @@ class PostController extends Controller
             'category_id' => 'required|exists:categories,id',
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'deleted_banner' => 'nullable|boolean', // Thêm validation cho banner xóa
+            'deleted_gallery_images' => 'nullable|array', // Thêm validation cho gallery xóa
+            'deleted_gallery_images.*' => 'string',
         ]);
 
-        // ===== ĐÃ CẬP NHẬT: Gán tường minh, bỏ mass assignment =====
         $post->title = $validatedData['title'];
         $post->short_description = $validatedData['short_description'];
         $post->content = $validatedData['content'];
         $post->category_id = $validatedData['category_id'];
-        // ========================================================
 
+        // Xử lý xóa banner nếu được đánh dấu
+        if ($request->input('deleted_banner') && $post->banner_image) {
+            Storage::disk('public')->delete($post->banner_image);
+            $post->banner_image = null;
+        }
+
+        // Xử lý upload banner mới (nếu có)
         if ($request->hasFile('banner_image')) {
             if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
             $post->banner_image = $request->file('banner_image')->store('post_banners', 'public');
         }
 
-        if ($request->hasFile('gallery_images')) {
-            $gallery = $post->gallery_images ?? [];
-            foreach ($request->file('gallery_images') as $image) {
-                $gallery[] = $image->store('post_gallery', 'public');
+        // Xử lý xóa ảnh gallery nếu được đánh dấu
+        $currentGallery = $post->gallery_images ?? [];
+        if ($request->has('deleted_gallery_images')) {
+            $imagesToDelete = $request->input('deleted_gallery_images');
+            foreach ($imagesToDelete as $imagePath) {
+                Storage::disk('public')->delete($imagePath);
             }
-            $post->gallery_images = $gallery;
+            // Loại bỏ các ảnh đã xóa khỏi mảng hiện tại
+            $currentGallery = array_diff($currentGallery, $imagesToDelete);
         }
+
+        // Xử lý upload ảnh gallery mới (nếu có)
+        if ($request->hasFile('gallery_images')) {
+            foreach ($request->file('gallery_images') as $image) {
+                $currentGallery[] = $image->store('post_gallery', 'public');
+            }
+        }
+        
+        $post->gallery_images = array_values($currentGallery); // Cập nhật lại mảng gallery
 
         $post->save();
 
         return redirect()->route('posts.list')->with('success', 'Bài viết đã được cập nhật thành công.');
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -203,33 +223,6 @@ class PostController extends Controller
         }
         Post::destroy($postIds);
         return redirect()->route('posts.list')->with('success', count($postIds) . ' bài viết đã được xóa thành công.');
-    }
-
-    public function deleteBanner(Post $post)
-    {
-        if ($post->banner_image) {
-            Storage::disk('public')->delete($post->banner_image);
-            $post->banner_image = null;
-            $post->save();
-            return response()->json(['success' => true, 'message' => 'Ảnh banner đã được xóa.']);
-        }
-        return response()->json(['success' => false, 'message' => 'Không có ảnh banner để xóa.'], 404);
-    }
-
-    public function deleteGallery(Request $request, Post $post)
-    {
-        $imagePath = $request->input('image_path');
-        if ($post->gallery_images && is_array($post->gallery_images)) {
-            $gallery = $post->gallery_images;
-            if (($key = array_search($imagePath, $gallery)) !== false) {
-                Storage::disk('public')->delete($imagePath);
-                unset($gallery[$key]);
-                $post->gallery_images = array_values($gallery); 
-                $post->save();
-                return response()->json(['success' => true, 'message' => 'Ảnh trong thư viện đã được xóa.']);
-            }
-        }
-        return response()->json(['success' => false, 'message' => 'Không tìm thấy ảnh hoặc có lỗi xảy ra.'], 404);
     }
 
     public function exportPosts()

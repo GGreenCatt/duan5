@@ -27,6 +27,11 @@
                     <form method="POST" action="{{ route('posts.update', $post->id) }}" enctype="multipart/form-data" id="editForm">
                         @csrf
                         @method('PUT')
+                        {{-- ===== CẬP NHẬT: Thêm các input hidden để lưu trạng thái xóa ảnh ===== --}}
+                        <input type="hidden" name="deleted_banner" id="deleted_banner" value="0">
+                        <div id="deleted-gallery-container"></div>
+                        {{-- ================================================================= --}}
+                        
                         <div class="mb-4">
                             <label for="title" class="block text-sm font-medium text-white required">Tiêu đề</label>
                             <input type="text" id="title" name="title" class="mt-1 block w-full bg-gray-800 text-white"
@@ -94,7 +99,7 @@
                                     @foreach ($post->gallery_images as $image)
                                         <div class="relative gallery-item" data-image="{{ $image }}" style="width: 64px; height: 64px;">
                                             <img src="{{ asset('storage/' . $image) }}" alt="Gallery" class="w-full h-full object-cover rounded">
-                                            <span class="delete-btn" onclick="deleteGalleryImage('{{ $image }}')">×</span>
+                                            <span class="delete-btn" onclick="deleteGalleryImage(event, '{{ $image }}')">×</span>
                                         </div>
                                     @endforeach
                                 </div>
@@ -188,10 +193,7 @@
             }
         });
 
-document.addEventListener('DOMContentLoaded', function() {
-            // ===== SCRIPT MỚI CHO HIỂN THỊ ẢNH PREVIEW VÀ NÚT XÓA (ĐÃ SỬA LỖI) =====
-
-            // -- Xử lý Banner --
+        document.addEventListener('DOMContentLoaded', function() {
             const bannerInput = document.getElementById('banner_image');
             const bannerDisplayArea = document.getElementById('banner-display-area');
             
@@ -199,6 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const file = event.target.files[0];
                 bannerDisplayArea.innerHTML = ''; 
                 if (file) {
+                    document.getElementById('deleted_banner').value = '0';
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         bannerDisplayArea.innerHTML = `
@@ -219,7 +222,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 formChanged = true;
             }
 
-            // -- Xử lý Gallery --
             const galleryInput = document.getElementById('gallery_images');
             const galleryPreviewContainer = document.getElementById('gallery-preview-container');
             const newGalleryHeading = document.getElementById('new-gallery-heading');
@@ -271,99 +273,55 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        function deleteBannerImage() {
+        // ===== CẬP NHẬT: Hàm xóa ảnh client-side =====
+        function deleteBannerImage(event) {
+            event.preventDefault();
             Swal.fire({
                 title: 'Bạn chắc chắn xóa banner?',
+                text: "Hành động này sẽ xóa ảnh sau khi bạn cập nhật.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Xóa',
+                confirmButtonText: 'Đồng ý',
                 cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch("{{ route('posts.deleteBanner', $post->id) }}", {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Server responded with an error!');
-                        }
-                        return response.text(); // Đọc response dưới dạng text
-                    })
-                    .then(text => {
-                        try {
-                            const jsonStart = text.indexOf('{');
-                            const jsonString = (jsonStart !== -1) ? text.substring(jsonStart) : text;
-                            const data = JSON.parse(jsonString);
-
-                            if (data.success) {
-                                Swal.fire('Đã xóa!', data.message, 'success');
-                                document.getElementById('banner-container')?.remove();
-                                formChanged = true;
-                            } else {
-                                Swal.fire('Lỗi!', data.message || 'Không thể xóa banner.', 'error');
-                            }
-                        } catch (e) {
-                             throw new Error('Failed to parse server response as JSON.');
-                        }
-                    }).catch(error => {
-                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xử lý phản hồi.', 'error');
-                        console.error('Error:', error);
-                    });
+                    document.getElementById('deleted_banner').value = '1';
+                    document.getElementById('banner-container').style.display = 'none';
+                    formChanged = true;
+                    // Nếu người dùng chọn file mới rồi lại xóa banner cũ, thì cũng clear file input
+                    const bannerInput = document.getElementById('banner_image');
+                    if(bannerInput.files.length > 0){
+                       bannerInput.value = '';
+                       document.getElementById('banner-display-area').innerHTML = '';
+                    }
                 }
             });
         }
 
-        function deleteGalleryImage(imageName) {
-            Swal.fire({
+        function deleteGalleryImage(event, imageName) {
+            event.preventDefault();
+             Swal.fire({
                 title: 'Xóa ảnh này?',
+                text: "Hành động này sẽ xóa ảnh sau khi bạn cập nhật.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Xóa',
+                confirmButtonText: 'Đồng ý',
                 cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch("{{ route('posts.deleteGallery', $post->id) }}", {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({ image_path: imageName })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Server responded with an error!');
-                        }
-                        // 1. Lấy response dưới dạng text
-                        return response.text();
-                    })
-                    .then(text => {
-                        // 2. Cố gắng tìm và parse chuỗi JSON từ text
-                        try {
-                            const jsonStart = text.indexOf('{');
-                            const jsonString = (jsonStart !== -1) ? text.substring(jsonStart) : text;
-                            const data = JSON.parse(jsonString);
+                    // Thêm một input hidden để đánh dấu ảnh cần xóa
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'deleted_gallery_images[]';
+                    hiddenInput.value = imageName;
+                    document.getElementById('deleted-gallery-container').appendChild(hiddenInput);
 
-                            // 3. Xử lý logic thành công/thất bại
-                            if (data.success) {
-                                Swal.fire('Đã xóa!', data.message, 'success');
-                                document.querySelector(`.gallery-item[data-image="${imageName}"]`)?.remove();
-                                formChanged = true;
-                            } else {
-                                Swal.fire('Lỗi!', data.message || 'Không thể xóa ảnh.', 'error');
-                            }
-                        } catch (e) {
-                             throw new Error('Failed to parse server response as JSON.');
-                        }
-                    }).catch(error => {
-                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xử lý phản hồi. Vui lòng kiểm tra console.', 'error');
-                        console.error('Error:', error);
-                    });
+                    // Ẩn ảnh khỏi giao diện
+                    const imageElement = document.querySelector(`.gallery-item[data-image="${imageName}"]`);
+                    if(imageElement) {
+                        imageElement.style.display = 'none';
+                    }
+                    formChanged = true;
                 }
             });
         }
