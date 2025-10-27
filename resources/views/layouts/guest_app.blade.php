@@ -17,6 +17,8 @@
     {{-- Fancybox CSS --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 
+    <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
+
     @stack('styles')
     </head>
     <body class="font-sans antialiased">

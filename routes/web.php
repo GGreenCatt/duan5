@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\UserPostController;
+use App\Http\Controllers\CommentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,6 +24,9 @@ Route::get('/categories', [UserDashboardController::class, 'allCategories'])->na
 // Route chi tiết
 Route::get('/posts/category/{category:slug}', [UserPostController::class, 'postsByCategory'])->name('guest.posts.by_category');
 Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+
+// Comment Route
+Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
 
 
 /*

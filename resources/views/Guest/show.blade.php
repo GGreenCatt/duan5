@@ -45,6 +45,43 @@
                             </div>
                         @endif
                         {{-- ====================================================== --}}
+
+                        <div class="mt-8 pt-6 border-t dark:border-gray-600" id="comments-section">
+                            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Bình luận</h3>
+
+                            <!-- Comment Form -->
+                            <form id="comment-form" action="{{ route('comments.store') }}" method="POST" class="mb-8">
+                                @csrf
+                                <input type="hidden" name="post_id" value="{{ $post->id }}">
+                                <div class="mb-4">
+                                    <label for="content" class="sr-only">Nội dung bình luận</label>
+                                    <textarea name="content" id="content" rows="4" class="w-full px-3 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Viết bình luận của bạn...">{{ old('content') }}</textarea>
+                                    <p id="content-error" class="text-red-500 text-xs mt-1"></p>
+                                </div>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Gửi bình luận</button>
+                            </form>
+
+                            <!-- Display Comments -->
+                            <div id="comments-list" class="space-y-6">
+                                @forelse ($post->comments->sortByDesc('created_at') as $comment)
+                                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                                        <div class="flex items-center mb-2">
+                                            <div class="font-bold text-gray-800 dark:text-gray-100">
+                                                @if ($comment->user)
+                                                    {{ $comment->user->name }}
+                                                @else
+                                                    {{ $comment->anonymous_name }}
+                                                @endif
+                                            </div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400 ml-3">{{ $comment->created_at->diffForHumans() }}</div>
+                                        </div>
+                                        <p class="text-gray-700 dark:text-gray-300">{{ $comment->content }}</p>
+                                    </div>
+                                @empty
+                                    <p id="no-comments-message" class="text-gray-500 dark:text-gray-400">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+                                @endforelse
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -77,4 +114,78 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#comment-form').on('submit', function(e) {
+                e.preventDefault(); // Prevent default form submission
+                console.log('Form submitted via AJAX.');
+
+                let form = $(this);
+                let url = form.attr('action');
+                let method = form.attr('method');
+                let formData = form.serialize();
+
+                // Clear previous errors
+                $('#content-error').text('');
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: formData,
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('AJAX Success Response:', response);
+                        if (response.success) {
+                            // Append new comment to the list
+                            let newCommentHtml = `
+                                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                                    <div class="flex items-center mb-2">
+                                        <div class="font-bold text-gray-800 dark:text-gray-100">
+                                            ${response.comment.author}
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400 ml-3">${response.comment.created_at_for_humans}</div>
+                                    </div>
+                                    <p class="text-gray-700 dark:text-gray-300">${response.comment.content}</p>
+                                </div>
+                            `;
+                            $('#comments-list').prepend(newCommentHtml); // Add to top
+                            console.log('Comment HTML appended:', newCommentHtml);
+
+                            // Clear the textarea
+                            $('#content').val('');
+
+                            // Remove "no comments" message if present
+                            $('#no-comments-message').remove();
+
+                            // Optional: Show a success notification
+                            Swal.fire({
+                                icon: 'success',
+                                title: response.message,
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('AJAX Error Response:', xhr);
+                        if (xhr.status === 422) { // Validation error
+                            let errors = xhr.responseJSON.errors;
+                            if (errors.content) {
+                                $('#content-error').text(errors.content[0]);
+                            }
+                        } else {
+                            // Generic error message
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Đã xảy ra lỗi khi gửi bình luận.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

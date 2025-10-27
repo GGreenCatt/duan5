@@ -111,7 +111,7 @@ class PostController extends Controller
             session()->push('viewed_posts', $post->id);
         }
 
-        $post->load(['category.parent', 'user']);
+        $post->load(['category.parent', 'user', 'comments.user']);
         $relatedPosts = Post::where('category_id', $post->category_id)
                             ->where('id', '!=', $post->id)
                             ->orderBy('created_at', 'desc')
