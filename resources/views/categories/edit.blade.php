@@ -32,24 +32,18 @@
                             <select name="parent_id" id="parent_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
                                 <option value="">-- Không có --</option>
                                 @php
-                                    // ✨ SỬA LỖI TẠI ĐÂY: Thêm điều kiện kiểm tra hàm đã tồn tại chưa ✨
                                     if (!function_exists('renderCategoryOptions')) {
                                         function renderCategoryOptions($categories, $prefix = '', $selectedId = null, $currentId = null) {
                                             foreach ($categories as $cat) {
-                                                // Không cho phép chọn chính danh mục này làm cha của nó
                                                 if ($cat->id == $currentId) continue;
-                                                
                                                 $isSelected = ($cat->id == $selectedId) ? 'selected' : '';
                                                 echo '<option value="' . $cat->id . '" ' . $isSelected . '>' . $prefix . $cat->name . '</option>';
-                                                
                                                 if ($cat->children->isNotEmpty()) {
-                                                    // Gọi đệ quy cho các danh mục con
                                                     renderCategoryOptions($cat->children, $prefix . '—', $selectedId, $currentId);
                                                 }
                                             }
                                         }
                                     }
-                                    // Gọi hàm để hiển thị các lựa chọn
                                     renderCategoryOptions($categories, '', $category->parent_id, $category->id);
                                 @endphp
                             </select>
@@ -64,21 +58,28 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="banner_image" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Ảnh Banner</label>
-                            <input type="file" name="banner_image" id="banner_image" class="mt-1 block w-full dark:bg-gray-700 dark:text-gray-300">
-                            @if ($category->banner_image)
-                                <div class="mt-2">
-                                    <p class="text-sm text-gray-500">Ảnh hiện tại:</p>
-                                    <img src="{{ asset('storage/' . $category->banner_image) }}" alt="{{ $category->name }}" class="h-20 w-auto rounded">
-                                </div>
-                            @endif
+                            <label for="banner_image" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Ảnh Banner (chọn ảnh mới để thay đổi)</label>
+                            <input type="file" name="banner_image" id="banner_image" class="mt-1 block w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500" onchange="previewBannerImage(event)">
+                            
+                            {{-- BỔ SUNG: Container cho ảnh xem trước --}}
+                            <div id="banner_preview_container" class="mt-4">
+                                @if ($category->image)
+                                    <div id="current_image_container">
+                                        <p class="text-sm text-gray-500 mb-2">Ảnh hiện tại:</p>
+                                        <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="h-40 w-auto rounded-lg object-cover">
+                                    </div>
+                                @endif
+                                {{-- Vùng xem trước ảnh mới sẽ được chèn vào đây bởi JS --}}
+                                <div id="banner_preview" class="mt-3"></div>
+                            </div>
+
                             @error('banner_image')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-
                         <div class="flex items-center justify-end mt-4">
+                            <a href="{{ route('categories.index') }}" class="text-gray-300 hover:text-white mr-4">Hủy</a>
                             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 Cập nhật
                             </button>
@@ -88,4 +89,41 @@
             </div>
         </div>
     </div>
+
+    {{-- BỔ SUNG: Script xem trước ảnh --}}
+    <script>
+        function previewBannerImage(event) {
+            const previewContainer = document.getElementById('banner_preview');
+            const currentImageContainer = document.getElementById('current_image_container');
+            previewContainer.innerHTML = '';
+            
+            const file = event.target.files[0];
+            if (file) {
+                // Ẩn ảnh hiện tại khi người dùng chọn ảnh mới
+                if(currentImageContainer) {
+                    currentImageContainer.style.display = 'none';
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('h-40', 'w-auto', 'rounded-lg', 'object-cover');
+                    
+                    const previewTitle = document.createElement('p');
+                    previewTitle.textContent = 'Ảnh mới xem trước:';
+                    previewTitle.classList.add('text-sm', 'text-gray-500', 'mb-2');
+                    
+                    previewContainer.appendChild(previewTitle);
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            } else {
+                // Hiện lại ảnh hiện tại nếu người dùng hủy chọn file
+                if(currentImageContainer) {
+                    currentImageContainer.style.display = 'block';
+                }
+            }
+        }
+    </script>
 </x-app-layout>

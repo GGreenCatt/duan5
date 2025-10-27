@@ -25,46 +25,75 @@
 
                 {{-- Cột Thêm mới Danh mục (giữ nguyên) --}}
                 <div class="lg:col-span-1">
-                    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-3">Thêm danh mục mới</h3>
-                        <form action="{{ route('categories.store') }}" method="POST">
-                            @csrf
-                            <div class="space-y-4">
-                                {{-- Tên danh mục --}}
-                                <div>
-                                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tên danh mục</label>
-                                    <input type="text" name="name" id="name" value="{{ old('name') }}" required
-                                           class="mt-1 block w-full bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 dark:text-white">
-                                </div>
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                                {{ __('Thêm danh mục mới') }}
+                            </h3>
+                            {{-- BỔ SUNG: Form tạo mới đã được tích hợp và sửa lỗi --}}
+                            <form id="create-category-form" method="POST" action="{{ route('categories.store') }}" enctype="multipart/form-data">
+                                @csrf
 
-                                {{-- Mô tả --}}
-                                <div>
-                                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mô tả</label>
-                                    <textarea name="description" id="description" rows="3"
-                                              class="mt-1 block w-full bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 dark:text-white">{{ old('description') }}</textarea>
+                                {{-- Tên danh mục --}}
+                                <div class="mb-4">
+                                    <label for="name" class="block text-sm font-medium text-gray-300">Tên danh mục <span class="text-red-500">*</span></label>
+                                    <input type="text" id="name" name="name" required maxlength="255"
+                                           value="{{ old('name') }}"
+                                           class="mt-1 block w-full bg-gray-700 text-gray-200 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    @error('name')
+                                        <small class="text-red-500 mt-1">{{ $message }}</small>
+                                    @enderror
                                 </div>
 
                                 {{-- Danh mục cha --}}
-                                <div>
-                                    <label for="parent_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Danh mục cha (để trống nếu là danh mục chính)</label>
-                                    <select name="parent_id" id="parent_id"
-                                            class="mt-1 block w-full bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 dark:text-white">
-                                        <option value="">-- Không có --</option>
-                                        @foreach ($parent_categories_for_form as $category)
-                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                <div class="mb-4">
+                                    <label for="parent_id" class="block text-sm font-medium text-gray-300">Danh mục cha</label>
+                                    <select id="parent_id" name="parent_id"
+                                            class="mt-1 block w-full bg-gray-700 text-gray-200 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="">-- Không chọn (danh mục gốc) --</option>
+                                        {{-- SỬA: Đổi biến cho đúng với controller --}}
+                                        @foreach($parent_categories_for_form as $parent)
+                                            <option value="{{ $parent->id }}" {{ old('parent_id') == $parent->id ? 'selected' : '' }}>
+                                                {{ $parent->name }}
+                                            </option>
                                         @endforeach
                                     </select>
+                                    @error('parent_id')
+                                        <small class="text-red-500 mt-1">{{ $message }}</small>
+                                    @enderror
                                 </div>
 
-                                {{-- Nút Thêm mới --}}
-                                <div class="flex justify-end pt-2">
-                                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md flex items-center transition-colors">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                                        Thêm mới
-                                    </button>
+                                {{-- Mô tả --}}
+                                <div class="mb-4">
+                                    <label for="description" class="block text-sm font-medium text-gray-300">Mô tả</label>
+                                    <textarea id="description" name="description" rows="4"
+                                              class="mt-1 block w-full bg-gray-700 text-gray-200 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">{{ old('description') }}</textarea>
+                                    @error('description')
+                                        <small class="text-red-500 mt-1">{{ $message }}</small>
+                                    @enderror
                                 </div>
-                            </div>
-                        </form>
+
+                                {{-- Ảnh banner --}}
+                                <div class="mb-4">
+                                    <label for="banner_image" class="block text-sm font-medium text-gray-300">Ảnh banner</label>
+                                    <input type="file" id="banner_image" name="banner_image"
+                                           accept="image/*"
+                                           onchange="previewBannerImage(event)"
+                                           class="mt-1 block w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500">
+                                    @error('banner_image')
+                                        <small class="text-red-500 mt-1">{{ $message }}</small>
+                                    @enderror
+                                    <div id="banner_preview" class="mt-3"></div>
+                                </div>
+
+                                {{-- Nút submit --}}
+                                <div class="flex items-center justify-end mt-4">
+                                    <x-primary-button type="submit">
+                                        {{ __('Tạo mới') }}
+                                    </x-primary-button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -185,5 +214,28 @@
         </script>
     @endif
     {{-- ========================================================== --}}
-
+{{-- BỔ SUNG: Script để xem trước ảnh --}}
+    <script>
+        function previewBannerImage(event) {
+            const previewContainer = document.getElementById('banner_preview');
+            previewContainer.innerHTML = '';
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('h-32', 'w-auto', 'rounded-lg', 'object-cover', 'mt-2');
+                    
+                    const previewTitle = document.createElement('p');
+                    previewTitle.textContent = 'Ảnh xem trước:';
+                    previewTitle.classList.add('text-sm', 'text-gray-500', 'mb-1');
+                    
+                    previewContainer.appendChild(previewTitle);
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 </x-app-layout>

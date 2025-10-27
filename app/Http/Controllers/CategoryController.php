@@ -42,17 +42,19 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        // SỬA ĐỔI: Thay 'image' thành 'banner_image' để khớp với form
         $validatedData = $request->validate([
             'name' => 'required|max:255|unique:categories',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
     
         $category = new Category($validatedData);
     
-        if ($request->hasFile('image')) {
-            $category->image = $request->file('image')->store('category_images', 'public');
+        // SỬA ĐỔI: Thay 'image' thành 'banner_image' và lưu vào cột 'image'
+        if ($request->hasFile('banner_image')) {
+            $category->image = $request->file('banner_image')->store('category_images', 'public');
         }
     
         $category->save();
@@ -74,11 +76,8 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        // ===== ĐÃ CẬP NHẬT TÊN BIẾN CHO ĐÚNG =====
-        // View edit.blade.php cần biến $categories cho dropdown
         $categories = Category::whereNull('parent_id')->where('id', '!=', $category->id)->get();
         return view('categories.edit', compact('category', 'categories'));
-        // ==========================================
     }
 
     /**
@@ -86,20 +85,22 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
+        // SỬA ĐỔI: Thay 'image' thành 'banner_image' để khớp với form
         $validatedData = $request->validate([
             'name' => 'required|max:255|unique:categories,name,' . $category->id,
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
 
         $category->fill($validatedData);
 
-        if ($request->hasFile('image')) {
+        // SỬA ĐỔI: Thay 'image' thành 'banner_image' và lưu vào cột 'image'
+        if ($request->hasFile('banner_image')) {
             if ($category->image) {
                 Storage::disk('public')->delete($category->image);
             }
-            $category->image = $request->file('image')->store('category_images', 'public');
+            $category->image = $request->file('banner_image')->store('category_images', 'public');
         }
 
         $category->save();

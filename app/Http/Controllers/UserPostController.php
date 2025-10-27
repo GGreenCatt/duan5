@@ -45,7 +45,7 @@ class UserPostController extends Controller
         // Lấy tên danh mục để hiển thị tiêu đề
         $categoryName = $category->name;
 
-        // Trả về view dành riêng cho User
-        return view('guest.post_list', compact('posts', 'categories', 'categoryName')); // Sửa 'posts.user_post_index' thành 'guest.post_list'
+        // Trả về view dành riêng cho User, truyền cả đối tượng $category
+        return view('guest.post_list', compact('posts', 'categories', 'category', 'categoryName'));
     }
 }

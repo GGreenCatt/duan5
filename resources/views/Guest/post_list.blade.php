@@ -10,7 +10,7 @@
             <span class="mx-2">&raquo;</span>
             @if(isset($category))
                 @if($category->parent)
-                    <a href="{{ route('guest.posts.by_category', $category->parent->id) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">{{ $category->parent->name }}</a>
+                    <a href="{{ route('guest.posts.by_category', $category->parent->slug) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">{{ $category->parent->name }}</a>
                     <span class="mx-2">&raquo;</span>
                 @endif
                 <span class="text-gray-700 dark:text-gray-200">{{ $category->name }}</span>
@@ -19,13 +19,33 @@
             @endif
         </div>
 
-        <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-8 text-center">
-            @if(isset($category))
-                {{ $category->name }}
-            @else
-                Khám phá bài viết
-            @endif
-        </h1>
+        {{-- Category Banner --}}
+        @if(isset($category) && $category->image)
+            <div class="relative h-64 rounded-xl overflow-hidden mb-8 shadow-lg">
+                <div class="absolute inset-0">
+                    <img class="w-full h-full object-cover" src="{{ asset('storage/' . $category->image) }}" alt="Banner for {{ $category->name }}">
+                </div>
+                <div class="absolute inset-0 bg-black opacity-50"></div>
+                <div class="relative h-full flex flex-col items-center justify-center text-center p-4">
+                    <h1 class="text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight">
+                        {{ $category->name }}
+                    </h1>
+                    @if($category->description)
+                    <p class="mt-4 text-lg text-gray-200 max-w-2xl">
+                        {{ $category->description }}
+                    </p>
+                    @endif
+                </div>
+            </div>
+        @else
+            <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-8 text-center">
+                @if(isset($categoryName))
+                    {{ $categoryName }}
+                @else
+                    Khám phá bài viết
+                @endif
+            </h1>
+        @endif
 
         @if(isset($posts) && $posts->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -66,7 +86,7 @@
                 </a>
                 @endforeach
             </div>
-            
+
             @if ($posts->hasPages())
             <div class="mt-10">
                 {{ $posts->links() }}
@@ -80,7 +100,7 @@
                 <p class="mt-2 text-gray-600 dark:text-gray-400">Rất tiếc, không có bài viết nào trong danh mục này.</p>
             </div>
         @endif
-        
+
     </div>
 </div>
 @endsection
