@@ -64,11 +64,14 @@
                             <!-- Display Comments -->
                             <div id="comments-list" class="space-y-6">
                                 @forelse ($post->comments->sortByDesc('created_at') as $comment)
-                                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                                    <div class="p-4 rounded-lg shadow-sm {{ ($comment->user && $comment->user->role == 'Admin') ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-50 dark:bg-gray-700' }}">
                                         <div class="flex items-center mb-2">
                                             <div class="font-bold text-gray-800 dark:text-gray-100">
                                                 @if ($comment->user)
                                                     {{ $comment->user->name }}
+                                                    @if ($comment->user->role == 'Admin')
+                                                        <span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Admin</span>
+                                                    @endif
                                                 @else
                                                     {{ $comment->anonymous_name }}
                                                 @endif
@@ -139,10 +142,11 @@
                         if (response.success) {
                             // Append new comment to the list
                             let newCommentHtml = `
-                                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                                <div class="p-4 rounded-lg shadow-sm ${response.comment.author_role === 'Admin' ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-50 dark:bg-gray-700'}">
                                     <div class="flex items-center mb-2">
                                         <div class="font-bold text-gray-800 dark:text-gray-100">
                                             ${response.comment.author}
+                                            ${response.comment.author_role === 'Admin' ? '<span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Admin</span>' : ''}
                                         </div>
                                         <div class="text-sm text-gray-500 dark:text-gray-400 ml-3">${response.comment.created_at_for_humans}</div>
                                     </div>

@@ -51,9 +51,14 @@
                     <div class="mt-8 pt-6 border-t dark:border-gray-600">
                         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Bình luận</h3>
                         @forelse ($post->comments as $comment)
-                            <div id="comment-{{ $comment->id }}" class="mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm">
+                            <div id="comment-{{ $comment->id }}" class="mb-4 p-4 rounded-lg shadow-sm {{ ($comment->user && $comment->user->role == 'Admin') ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-100 dark:bg-gray-700' }}">
                                 <div class="flex justify-between items-center mb-2">
-                                    <p class="font-semibold text-gray-900 dark:text-gray-100">{{ $comment->user ? $comment->user->name : ($comment->anonymous_name ?? 'Anonymous') }}</p>
+                                    <p class="font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ $comment->user ? $comment->user->name : ($comment->anonymous_name ?? 'Anonymous') }}
+                                        @if ($comment->user && $comment->user->role == 'Admin')
+                                            <span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Admin</span>
+                                        @endif
+                                    </p>
                                     <span class="text-sm text-gray-500 dark:text-gray-400">{{ $comment->created_at->format('d/m/Y H:i') }}</span>
                                 </div>
                                 <p class="text-gray-800 dark:text-gray-200">{{ $comment->content }}</p>
