@@ -1,314 +1,183 @@
-@if (session('success') === 'Đăng nhập thành công')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            Swal.fire({
-                icon: 'success',
-                title: 'Đăng nhập thành công!',
-                showConfirmButton: false,
-                timer: 1500
-            });
-        });
-    </script>
-@endif
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Dashboard') }} <!-- Sửa thành Dashboard cho phù hợp -->
+            {{ __('Dashboard') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 px-4"> <!-- Thêm px-4 cho padding mobile -->
-            <!-- Ô hiển thị thời gian thực -->
-            <div class="flex justify-center mb-8" style="margin-top:-25px ">
-                <div id="realtime-clock" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg font-bold tracking-widest text-center"> <!-- Thêm text-center -->
-                </div>
-            </div>
-
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Khu vực thống kê -->
-            <!-- Sử dụng class stats-container để wrap các card lại -->
-            <div class="stats-container mb-8">
-                <div class="stat-card"> <!-- Bỏ class Tailwind: flex-1 min-w-[200px] vì đã xử lý trong CSS -->
-                    <h3 class="text-lg font-semibold">Tổng số bài đăng</h3>
-                    <p class="text-3xl mt-2 font-bold">{{ $totalPosts }}</p>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex items-center">
+                    <div class="bg-blue-500 text-white rounded-full h-12 w-12 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Tổng số bài đăng</h3>
+                        <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ $totalPosts }}</p>
+                    </div>
                 </div>
-
-                <div class="stat-card">
-                    <h3 class="text-lg font-semibold">Bài đăng trong tuần</h3>
-                    <p class="text-3xl mt-2 font-bold">{{ $postsThisWeek }}</p>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex items-center">
+                    <div class="bg-green-500 text-white rounded-full h-12 w-12 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Tổng số lượt xem</h3>
+                        <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ $totalViews }}</p>
+                    </div>
                 </div>
-
-                <div class="stat-card">
-                    <h3 class="text-lg font-semibold">Bài đăng trong tháng</h3>
-                    <p class="text-3xl mt-2 font-bold">{{ $postsThisMonth }}</p>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex items-center">
+                    <div class="bg-yellow-500 text-white rounded-full h-12 w-12 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Bài đăng trong tuần</h3>
+                        <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ $postsThisWeek }}</p>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex items-center">
+                    <div class="bg-red-500 text-white rounded-full h-12 w-12 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Bài đăng trong tháng</h3>
+                        <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ $postsThisMonth }}</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Phần 2: Biểu đồ -->
-            <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow mb-8"> <!-- p-4 cho mobile, sm:p-6 cho lớn hơn -->
-                <!-- Sử dụng class chart-header -->
-                <div class="chart-header">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 sm:mb-0">Biểu đồ số bài đăng</h3> <!-- mb-2 sm:mb-0 để có khoảng cách trên mobile -->
-                    <select id="chartMode" class="text-black px-4 py-2 rounded"> <!-- Bỏ class Tailwind vì đã xử lý trong CSS -->
-                        <option value="day">Ngày</option>
-                        <option value="week">Tuần</option>
-                        <option value="month" selected>Tháng</option>
-                    </select>
+            <!-- Khu vực biểu đồ và danh mục -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Thống kê bài đăng</h3>
+                        <div class="flex space-x-2">
+                            <button class="toggle-btn active px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md" data-period="month">Tháng</button>
+                            <button class="toggle-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md" data-period="week">Tuần</button>
+                            <button class="toggle-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md" data-period="day">Ngày</button>
+                        </div>
+                    </div>
+                    <div class="relative h-80">
+                        <canvas id="postsChart"></canvas>
+                    </div>
                 </div>
-                <div style="height: 300px; sm:height: 400px; max-width: 100%;"> <!-- height nhỏ hơn cho mobile -->
-                    <canvas id="postsChart"></canvas>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Phân phối bài đăng</h3>
+                    <ul>
+                        @foreach($categories as $category)
+                            <li class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                <span class="text-gray-600 dark:text-gray-300">{{ $category->name }}</span>
+                                <span class="font-bold text-gray-800 dark:text-gray-100">{{ $category->posts_count }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Khu vực bài đăng gần đây -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Bài đăng gần đây</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tiêu đề</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tác giả</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ngày đăng</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Lượt xem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach($posts as $post)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $post->title }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $post->user->name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $post->created_at->format('d/m/Y') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $post->views }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
 
-<!-- Biểu đồ Chart.js -->
- 
- <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-        console.log(jQuery().jquery);
-    document.addEventListener("DOMContentLoaded", function() {
-        // Hiển thị thời gian thực
-        function updateClock() {
-            const now = new Date();
-            const options = {
-                weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            };
-            document.getElementById('realtime-clock').textContent = now.toLocaleDateString('vi-VN', options).replace(',', ' -');
-        }
-        updateClock();
-        setInterval(updateClock, 1000);
-
-        // Chart.js
-        const ctx = document.getElementById('postsChart').getContext('2d');
-        const chartModeSelect = document.getElementById('chartMode');
-
-        let chartData = {
-            labels: @json($months),
-            data: @json($monthlyData)
-        };
-
-        const chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: 'Số bài đăng',
-                    data: chartData.data,
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 2,
-                    hoverBackgroundColor: 'rgba(54, 162, 235, 1)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { ticks: { color: '#fff' } },
-                    y: { beginAtZero: true, ticks: { color: '#fff' } }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('postsChart').getContext('2d');
+            
+            const chartData = {
+                day: {
+                    labels: @json($dailyLabels),
+                    datasets: [{
+                        label: 'Số bài đăng',
+                        data: @json($dailyData),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
                 },
-                plugins: {
-                    legend: { labels: { color: '#fff' } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(tooltipItem) {
-                                return ' ' + tooltipItem.raw + ' bài đăng';
-                            }
+                week: {
+                    labels: @json($weeklyLabels),
+                    datasets: [{
+                        label: 'Số bài đăng',
+                        data: @json($weeklyData),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                month: {
+                    labels: @json($months),
+                    datasets: [{
+                        label: 'Số bài đăng',
+                        data: @json($monthlyData),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                }
+            };
+
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: chartData.month, // Initial data
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
                         }
                     }
                 }
-            }
-        });
+            });
 
-        // Cập nhật biểu đồ khi chọn chế độ
-        chartModeSelect.addEventListener('change', function() {
-            updateChartMode(this.value);
-        });
-
-        function updateChartMode(mode) {
-            if (mode === 'day') {
-                chartData.labels = @json($dailyLabels);
-                chartData.data = @json($dailyData);
-                chart.data.datasets[0].label = 'Số bài đăng mỗi ngày';
-            } else if (mode === 'week') {
-                chartData.labels = @json($weeklyLabels);
-                chartData.data = @json($weeklyData);
-                chart.data.datasets[0].label = 'Số bài đăng mỗi tuần';
-            } else {
-                chartData.labels = @json($months);
-                chartData.data = @json($monthlyData);
-                chart.data.datasets[0].label = 'Số bài đăng mỗi tháng';
+            function updateChart(period) {
+                chart.data = chartData[period];
+                chart.update();
             }
 
-            // Cập nhật lại biểu đồ
-            chart.data.labels = chartData.labels;
-            chart.data.datasets[0].data = chartData.data;
-            chart.update();
-        }
-    });
-</script>
-
-    <!-- CSS tùy chỉnh cho hiệu ứng hover -->
-    <style>
-            .stat-card {
-        padding: 1.5rem;
-        border-radius: 1rem;
-        transition: transform 0.3s, box-shadow 0.3s;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        color: #ffffff; /* Đảm bảo màu chữ trắng */
-        background: linear-gradient(135deg, rgba(54, 162, 235, 0.8), rgba(75, 192, 192, 0.8));
-    }
-
-    .stat-card:nth-child(1) {
-        background: linear-gradient(135deg, #6366F1, #EC4899); /* Màu nền thống kê 1 */
-    }
-
-    .stat-card:nth-child(2) {
-        background: linear-gradient(135deg, #10B981, #3B82F6); /* Màu nền thống kê 2 */
-    }
-
-    .stat-card:nth-child(3) {
-        background: linear-gradient(135deg, #F97316, #EF4444); /* Màu nền thống kê 3 */
-    }
-
-    .stat-card::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.15);
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
-    }
-
-    .stat-card:hover::after {
-        opacity: 0.3;
-    }
-    #chartMode {
-        background-color: #f3f4f6; /* Màu nền sáng */
-        color: #000; /* Màu chữ đen */
-        border: 1px solid #ddd; /* Đường viền nhẹ */
-        width: 250px; /* Đảm bảo chiều rộng tương tự với tiêu đề */
-        max-width: 100%; /* Đáp ứng với kích thước màn hình nhỏ */
-        transition: background-color 0.3s;
-    }
-
-    #chartMode:hover {
-        background-color: #e2e8f0; /* Đổi màu nền khi hover */
-    }
-
-     .stat-card {
-        padding: 1.5rem;
-        border-radius: 1rem;
-        transition: transform 0.3s, box-shadow 0.3s;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        color: #ffffff;
-        /* Mặc định chiếm toàn bộ chiều rộng trên màn hình nhỏ */
-        width: 100%;
-        margin-bottom: 1rem; /* Thêm khoảng cách dưới khi xếp chồng */
-    }
-
-    .stat-card:nth-child(1) {
-        background: linear-gradient(135deg, #6366F1, #EC4899);
-    }
-
-    .stat-card:nth-child(2) {
-        background: linear-gradient(135deg, #10B981, #3B82F6);
-    }
-
-    .stat-card:nth-child(3) {
-        background: linear-gradient(135deg, #F97316, #EF4444);
-    }
-
-    .stat-card::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.15);
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
-    }
-
-    .stat-card:hover::after {
-        opacity: 0.3;
-    }
-
-    #chartMode {
-        background-color: #f3f4f6;
-        color: #000;
-        border: 1px solid #ddd;
-        width: 100%; /* Chiếm toàn bộ chiều rộng trên mobile */
-        max-width: 100%;
-        transition: background-color 0.3s;
-        margin-top: 0.5rem; /* Thêm chút khoảng cách với tiêu đề trên mobile */
-    }
-
-    #chartMode:hover {
-        background-color: #e2e8f0;
-    }
-
-    /* --- Responsive Adjustments --- */
-
-    /* Small screens and up (sm: 640px) - Bố cục như cũ cho desktop và tablet lớn */
-    @media (min-width: 640px) {
-        .stat-card {
-            /* flex-1 sẽ được áp dụng lại từ class Tailwind */
-            min-width: 350px; /* Giữ lại min-width cho màn hình lớn hơn */
-            width: auto; /* Để flexbox quyết định chiều rộng */
-            margin-bottom: 0; /* Bỏ margin-bottom khi nằm ngang */
-        }
-        #chartMode {
-            width: 250px; /* Giới hạn lại chiều rộng cho desktop */
-            margin-top: 0; /* Bỏ margin top */
-        }
-        /* Đảm bảo flex container cho stat cards chỉ áp dụng từ sm trở lên */
-        .stats-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-evenly;
-            gap: 1.5rem; /* tương đương gap-6 của Tailwind */
-        }
-        /* Căn chỉnh dropdown chartMode và tiêu đề trên màn hình lớn */
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem; /* mb-4 */
-        }
-    }
-
-     /* CSS cho ô hiển thị thời gian thực */
-    #realtime-clock {
-        font-size: 1rem; /* Kích thước chữ nhỏ hơn trên mobile */
-        padding: 0.75rem 1.5rem; /* padding nhỏ hơn */
-    }
-    @media (min-width: 640px) { /* sm breakpoint */
-        #realtime-clock {
-            font-size: 1.5rem; /* text-2xl */
-            padding: 1rem 2rem; /* px-8 py-4 */
-        }
-    }
-    </style>
+            document.querySelectorAll('.toggle-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    document.querySelectorAll('.toggle-btn').forEach(btn => {
+                        btn.classList.remove('active', 'bg-blue-600', 'text-white');
+                        btn.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    this.classList.add('active', 'bg-blue-600', 'text-white');
+                    this.classList.remove('bg-gray-200', 'text-gray-700');
+                    updateChart(this.getAttribute('data-period'));
+                });
+            });
+        });
+    </script>
+</x-app-layout>

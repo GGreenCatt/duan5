@@ -18,8 +18,13 @@
                             <span>Đăng bởi {{ $post->user->name }}</span>
                             <span class="mx-2">&bull;</span>
                             <span>{{ $post->created_at->format('d/m/Y') }}</span>
-                             <span class="mx-2">&bull;</span>
+                            <span class="mx-2">&bull;</span>
                             <a href="{{ route('guest.posts.by_category', $post->category->slug) }}" class="hover:underline">{{ $post->category->name }}</a>
+                            <span class="mx-2">&bull;</span>
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                {{ $post->views }}
+                            </span>
                         </div>
                         
                         <div class="prose dark:prose-invert max-w-none text-lg text-gray-700 dark:text-gray-300 leading-relaxed">

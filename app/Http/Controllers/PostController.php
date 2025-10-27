@@ -104,6 +104,13 @@ class PostController extends Controller
     
     public function show(Post $post)
     {
+        $viewed = session()->get('viewed_posts', []);
+
+        if (!in_array($post->id, $viewed)) {
+            $post->increment('views');
+            session()->push('viewed_posts', $post->id);
+        }
+
         $post->load(['category.parent', 'user']);
         $relatedPosts = Post::where('category_id', $post->category_id)
                             ->where('id', '!=', $post->id)
