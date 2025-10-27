@@ -70,6 +70,7 @@
         <li> <a href="{{ route('guest.categories') }}" class="block py-2 px-3 rounded md:p-0 {{ request()->routeIs('guest.categories') ? 'text-white bg-blue-700 md:bg-transparent md:text-blue-700 md:dark:text-blue-500' : 'text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white dark:hover:bg-gray-700 md:dark:hover:bg-transparent dark:border-gray-700' }}" aria-current="{{ request()->routeIs('guest.categories') ? 'page' : 'false' }}">Danh mục</a> </li>
 
         <li> <a href="{{ route('about') }}" class="block py-2 px-3 rounded md:p-0 {{ request()->routeIs('about') ? 'text-white bg-blue-700 md:bg-transparent md:text-blue-700 md:dark:text-blue-500' : 'text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white dark:hover:bg-gray-700 md:dark:hover:bg-transparent dark:border-gray-700' }}" aria-current="{{ request()->routeIs('about') ? 'page' : 'false' }}">Về chúng tôi</a> </li>
+        <li> <a href="{{ route('guest.contact') }}" class="block py-2 px-3 rounded md:p-0 {{ request()->routeIs('guest.contact') ? 'text-white bg-blue-700 md:bg-transparent md:text-blue-700 md:dark:text-blue-500' : 'text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white dark:hover:bg-gray-700 md:dark:hover:bg-transparent dark:border-gray-700' }}" aria-current="{{ request()->routeIs('guest.contact') ? 'page' : 'false' }}">Liên hệ</a> </li>
     </ul>
 </div>
               </div>

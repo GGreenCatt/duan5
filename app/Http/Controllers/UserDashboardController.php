@@ -42,4 +42,12 @@ class UserDashboardController extends Controller
         // Trả về view 'guest.categories' mà bạn đã tạo
         return view('guest.categories', compact('parentCategories'));
     }
+
+    /**
+     * Hiển thị trang liên hệ.
+     */
+    public function contact()
+    {
+        return view('guest.contact');
+    }
 }

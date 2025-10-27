@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 // Gộp các route của khách cho gọn
 Route::get('/', [UserDashboardController::class, 'index'])->name('guest.home');
 Route::get('/about-us', function () { return view('guest.about'); })->name('about');
+Route::get('/contact', [UserDashboardController::class, 'contact'])->name('guest.contact');
 Route::get('/posts', [UserPostController::class, 'index'])->name('guest.posts.index');
 Route::get('/categories', [UserDashboardController::class, 'allCategories'])->name('guest.categories'); // ĐÂY LÀ ROUTE CẦN CÓ
 
