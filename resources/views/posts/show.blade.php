@@ -17,11 +17,11 @@
                     <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{{ $post->title }}</h1>
 
                     <div class="flex items-center text-gray-500 dark:text-gray-400 text-sm mb-6 border-y dark:border-gray-600 py-3">
-                        <span><strong>Tác giả:</strong> {{ $post->user->name }}</span>
+                        <span><strong>Tác giả:</strong> {{ $post->user ? $post->user->name : 'Anonymous' }}</span>
                         <span class="mx-3">|</span>
                         <span><strong>Ngày đăng:</strong> {{ $post->created_at->format('d/m/Y H:i') }}</span>
                         <span class="mx-3">|</span>
-                        <span><strong>Danh mục:</strong> {{ $post->category->name }}</span>
+                        <span><strong>Danh mục:</strong> {{ $post->category ? $post->category->name : 'Uncategorized' }}</span>
                         <span class="mx-3">|</span>
                         <span class="flex items-center ">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
@@ -49,6 +49,30 @@
                     {{-- ====================================================== --}}
 
                     <div class="mt-8 pt-6 border-t dark:border-gray-600">
+                        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Bình luận</h3>
+                        @forelse ($post->comments as $comment)
+                            <div id="comment-{{ $comment->id }}" class="mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm">
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="font-semibold text-gray-900 dark:text-gray-100">{{ $comment->user ? $comment->user->name : ($comment->anonymous_name ?? 'Anonymous') }}</p>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $comment->created_at->format('d/m/Y H:i') }}</span>
+                                </div>
+                                <p class="text-gray-800 dark:text-gray-200">{{ $comment->content }}</p>
+                                @auth
+                                    @if (Auth::user()->role == 'Admin')
+                                        <form action="{{ route('posts.comments.destroy', $comment) }}" method="POST" class="delete-comment-form mt-2">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-400 text-sm">Xóa</button>
+                                        </form>
+                                    @endif
+                                @endauth
+                            </div>
+                        @empty
+                            <p class="text-gray-600 dark:text-gray-400">Chưa có bình luận nào.</p>
+                        @endforelse
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t dark:border-gray-600">
                          <a href="{{ route('posts.list') }}" class="text-indigo-400 hover:text-indigo-300">&larr; Quay lại danh sách</a>
                     </div>
 
@@ -57,3 +81,76 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.delete-comment-form').forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                Swal.fire({
+                    title: 'Bạn có chắc chắn?',
+                    text: "Bạn sẽ không thể hoàn tác hành động này!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Có, xóa nó!',
+                    cancelButtonText: 'Hủy bỏ'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const url = form.action;
+                        const formData = new FormData(form);
+                        const method = form.querySelector('input[name="_method"]').value;
+
+                        fetch(url, {
+                            method: method,
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json',
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'success',
+                                    title: data.success,
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    timerProgressBar: true,
+                                });
+                                const commentId = form.closest('.mb-4').id;
+                                document.getElementById(commentId).remove();
+                            } else {
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'error',
+                                    title: 'Đã xảy ra lỗi!',
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    timerProgressBar: true,
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'error',
+                                title: 'Đã xảy ra lỗi!',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                            });
+                        });
+                    }
+                });
+            });
+        });
+    });
+</script>

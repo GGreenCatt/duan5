@@ -123,7 +123,7 @@ class PostController extends Controller
 
     public function showForAdmin(Post $post)
     {
-        $post->load(['category.parent', 'user']);
+        $post->load(['category.parent', 'user', 'comments.user']); // Eager load comments and their users
         return view('posts.show', compact('post'));
     }
 
