@@ -1,5 +1,5 @@
 @extends('layouts.guest_app')
-
+@section('title', isset($category) ? 'Danh mục ' . $category->name : 'Danh sách bài viết')
 @section('content')
 <div class="py-8">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 px-4">

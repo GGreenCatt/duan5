@@ -1,5 +1,5 @@
 @extends('layouts.guest_app')
-
+@section('title', 'Danh sách danh mục')
 @section('content')
 <div class="py-12 bg-gray-50 dark:bg-gray-900">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 px-4">

@@ -1,5 +1,5 @@
 @extends('layouts.guest_app')
-
+@section('title', 'Về chúng tôi')
 @section('content') {{-- Bọc nội dung trong section content --}}
     {{-- Thêm padding top pt-8 --}}
     <div class="py-12 pt-8">

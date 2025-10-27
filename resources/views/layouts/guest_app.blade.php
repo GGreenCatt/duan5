@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>@yield('title', config('app.name', 'Laravel'))</title>
+    <link rel="icon" href="{{ asset('image/favicon.png') }}" type="image/png">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -27,8 +28,7 @@
               <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                   {{-- Logo --}}
                   <a href="{{ route('guest.home') }}" class="flex items-center space-x-3 rtl:space-x-reverse">
-                      <x-application-logo class="block h-8 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                      <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">{{ config('app.name', 'Laravel') }}</span>
+                      <img src="{{ asset('image/logo.png') }}" alt="Logo" class="block h-20 w-18 fill-current text-gray-800 dark:text-gray-200" />
                   </a>
                   {{-- Nút Login/Register hoặc User Menu --}}
                   <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
