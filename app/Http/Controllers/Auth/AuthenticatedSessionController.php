@@ -32,7 +32,7 @@ class AuthenticatedSessionController extends Controller
         // Thêm dòng này để gắn session thông báo chào mừng
         // Session này có thể được sử dụng ở bất kỳ view nào sau khi đăng nhập
         // để hiển thị thông báo một lần.
-        session()->flash('login_success', true);
+        session()->flash('success', 'Đăng nhập thành công');
 
         // Kiểm tra vai trò của người dùng và điều hướng
         if (Auth::user()->role === 'User') {
