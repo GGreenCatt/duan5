@@ -47,4 +47,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
+
+    public function postInteractions()
+    {
+        return $this->hasMany(PostInteraction::class);
+    }
+
+    public function commentInteractions()
+    {
+        return $this->hasMany(CommentInteraction::class);
+    }
 }

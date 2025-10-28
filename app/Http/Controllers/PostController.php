@@ -111,7 +111,24 @@ class PostController extends Controller
             session()->push('viewed_posts', $post->id);
         }
 
-        $post->load(['category.parent', 'user', 'comments.user']);
+        // Eager load relationships for performance
+        $post->load([
+            'category.parent', 
+            'user', 
+            'interactions',
+            // Load only top-level comments
+            'comments' => function ($query) {
+                $query->whereNull('parent_id')->with([
+                    'user', 
+                    'interactions', 
+                    // Recursively load replies and their relationships
+                    'replies' => function($replyQuery) {
+                        $replyQuery->with('user', 'interactions', 'replies');
+                    }
+                ])->orderBy('created_at', 'desc');
+            }
+        ]);
+
         $relatedPosts = Post::where('category_id', $post->category_id)
                             ->where('id', '!=', $post->id)
                             ->orderBy('created_at', 'desc')
@@ -123,7 +140,21 @@ class PostController extends Controller
 
     public function showForAdmin(Post $post)
     {
-        $post->load(['category.parent', 'user', 'comments.user']); // Eager load comments and their users
+        $post->load([
+            'category.parent', 
+            'user', 
+            'likes',
+            'dislikes',
+            'comments' => function ($query) {
+                $query->whereNull('parent_id')->with([
+                    'user', 
+                    'interactions', 
+                    'replies' => function($replyQuery) {
+                        $replyQuery->with('user', 'interactions', 'replies'); // Recursive load
+                    }
+                ])->orderBy('created_at', 'desc');
+            }
+        ]);
         return view('posts.show', compact('post'));
     }
 

@@ -16,16 +16,28 @@
 
                     <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{{ $post->title }}</h1>
 
-                    <div class="flex items-center text-gray-500 dark:text-gray-400 text-sm mb-6 border-y dark:border-gray-600 py-3">
+                    <div class="flex flex-wrap items-center text-gray-500 dark:text-gray-400 text-sm mb-6 border-y dark:border-gray-600 py-3">
                         <span><strong>Tác giả:</strong> {{ $post->user ? $post->user->name : 'Anonymous' }}</span>
                         <span class="mx-3">|</span>
                         <span><strong>Ngày đăng:</strong> {{ $post->created_at->format('d/m/Y H:i') }}</span>
                         <span class="mx-3">|</span>
                         <span><strong>Danh mục:</strong> {{ $post->category ? $post->category->name : 'Uncategorized' }}</span>
                         <span class="mx-3">|</span>
-                        <span class="flex items-center ">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                            <strong>Lượt xem: </strong>  {{ $post->views }}
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            <strong>Lượt xem: </strong>&nbsp;{{ $post->views }}
+                        </span>
+                    </div>
+
+                    {{-- Interaction Stats --}}
+                    <div class="flex flex-wrap items-center text-gray-500 dark:text-gray-400 text-sm mb-6 py-3">
+                        <span class="flex items-center mr-4">
+                            <svg class="w-5 h-5 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.562 8H12V4a2 2 0 00-2-2v1.293a1 1 0 01-1.707 0V2a2 2 0 00-2 2v4.333l.002.001a1 1 0 01.706.998V10.5z"></path></svg>
+                            <strong>Likes:</strong>&nbsp;{{ $post->likes->count() }}
+                        </span>
+                        <span class="flex items-center">
+                             <svg class="w-5 h-5 mr-1 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.106-1.79l-.05-.025A4 4 0 0011.057 2H5.641a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.438 12H8v4a2 2 0 002 2v-1.293a1 1 0 011.707 0V18a2 2 0 002-2v-4.333l-.002-.001a1 1 0 01-.706-.998V9.5z"></path></svg>
+                            <strong>Dislikes:</strong>&nbsp;{{ $post->dislikes->count() }}
                         </span>
                     </div>
                     
@@ -33,7 +45,6 @@
                         {!! $post->content !!}
                     </div>
 
-                    {{-- ===== CẬP NHẬT: Thêm data-fancybox vào gallery ===== --}}
                     @if($post->gallery_images && count($post->gallery_images) > 0)
                         <div class="mt-8 pt-6 border-t dark:border-gray-600">
                             <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Thư viện ảnh</h3>
@@ -46,32 +57,11 @@
                             </div>
                         </div>
                     @endif
-                    {{-- ====================================================== --}}
 
                     <div class="mt-8 pt-6 border-t dark:border-gray-600">
                         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Bình luận</h3>
                         @forelse ($post->comments as $comment)
-                            <div id="comment-{{ $comment->id }}" class="mb-4 p-4 rounded-lg shadow-sm {{ ($comment->user && $comment->user->role == 'Admin') ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-100 dark:bg-gray-700' }}">
-                                <div class="flex justify-between items-center mb-2">
-                                    <p class="font-semibold text-gray-900 dark:text-gray-100">
-                                        {{ $comment->user ? $comment->user->name : ($comment->anonymous_name ?? 'Anonymous') }}
-                                        @if ($comment->user && $comment->user->role == 'Admin')
-                                            <span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Admin</span>
-                                        @endif
-                                    </p>
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $comment->created_at->format('d/m/Y H:i') }}</span>
-                                </div>
-                                <p class="text-gray-800 dark:text-gray-200">{{ $comment->content }}</p>
-                                @auth
-                                    @if (Auth::user()->role == 'Admin')
-                                        <form action="{{ route('posts.comments.destroy', $comment) }}" method="POST" class="delete-comment-form mt-2">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-400 text-sm">Xóa</button>
-                                        </form>
-                                    @endif
-                                @endauth
-                            </div>
+                            @include('posts._admin_comment', ['comment' => $comment])
                         @empty
                             <p class="text-gray-600 dark:text-gray-400">Chưa có bình luận nào.</p>
                         @endforelse
@@ -91,7 +81,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.delete-comment-form').forEach(form => {
             form.addEventListener('submit', function (event) {
-                event.preventDefault(); // Prevent the default form submission
+                event.preventDefault();
 
                 Swal.fire({
                     title: 'Bạn có chắc chắn?',
@@ -105,53 +95,28 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         const url = form.action;
-                        const formData = new FormData(form);
-                        const method = form.querySelector('input[name="_method"]').value;
-
+                        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        
                         fetch(url, {
-                            method: method,
+                            method: 'POST', // Forms use POST, but we specify DELETE via _method field
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-CSRF-TOKEN': token,
                                 'Accept': 'application/json',
                             },
-                            body: formData
+                            body: new FormData(form) // Send form data to include _method
                         })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                Swal.fire({
-                                    toast: true,
-                                    position: 'top-end',
-                                    icon: 'success',
-                                    title: data.success,
-                                    showConfirmButton: false,
-                                    timer: 3000,
-                                    timerProgressBar: true,
-                                });
-                                const commentId = form.closest('.mb-4').id;
-                                document.getElementById(commentId).remove();
+                                Swal.fire('Đã xóa!', data.success, 'success');
+                                form.closest('#comment-' + form.closest('[data-comment-id]').dataset.commentId).remove();
                             } else {
-                                Swal.fire({
-                                    toast: true,
-                                    position: 'top-end',
-                                    icon: 'error',
-                                    title: 'Đã xảy ra lỗi!',
-                                    showConfirmButton: false,
-                                    timer: 3000,
-                                    timerProgressBar: true,
-                                });
+                                Swal.fire('Lỗi!', 'Đã xảy ra lỗi khi xóa bình luận.', 'error');
                             }
                         })
                         .catch(error => {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'error',
-                                title: 'Đã xảy ra lỗi!',
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                            });
+                            console.error('Error:', error);
+                            Swal.fire('Lỗi!', 'Đã xảy ra lỗi khi xóa bình luận.', 'error');
                         });
                     }
                 });

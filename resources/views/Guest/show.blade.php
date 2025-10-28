@@ -12,9 +12,9 @@
                             <img src="{{ asset('storage/' . $post->banner_image) }}" alt="{{ $post->title }}" class="w-full h-auto object-cover rounded-lg mb-6">
                         @endif
 
-                        <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{{ $post->title }}</h1>
+                        <h1 class="text-4xl font-extold text-gray-900 dark:text-white mb-4">{{ $post->title }}</h1>
 
-                        <div class="flex items-center text-gray-500 dark:text-gray-400 text-sm mb-6">
+                        <div class="flex flex-wrap items-center text-gray-500 dark:text-gray-400 text-sm mb-6">
                             <span>Đăng bởi {{ $post->user->name }}</span>
                             <span class="mx-2">&bull;</span>
                             <span>{{ $post->created_at->format('d/m/Y') }}</span>
@@ -31,7 +31,6 @@
                             {!! $post->content !!}
                         </div>
 
-                        {{-- ===== CẬP NHẬT: Thêm data-fancybox vào gallery ===== --}}
                         @if($post->gallery_images && count($post->gallery_images) > 0)
                             <div class="mt-8">
                                 <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Thư viện ảnh</h3>
@@ -44,42 +43,42 @@
                                 </div>
                             </div>
                         @endif
-                        {{-- ====================================================== --}}
 
+                        {{-- Post Interactions --}}
+                        <div class="mt-8 pt-6 border-t dark:border-gray-600 flex items-center space-x-6">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">Bạn thấy bài viết này thế nào?</h3>
+                            <div class="flex items-center space-x-4">
+                                <button id="like-post-btn" class="post-interact-btn flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200" data-post-id="{{ $post->id }}" data-type="like">
+                                    <svg class="w-6 h-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.085a2 2 0 00-1.736.97l-1.9 3.8z"></path></svg>
+                                    <span>Thích</span>
+                                    (<span id="post-likes-count">{{ $post->likes()->count() }}</span>)
+                                </button>
+                                <button id="dislike-post-btn" class="post-interact-btn flex items-center text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200" data-post-id="{{ $post->id }}" data-type="dislike">
+                                    <svg class="w-6 h-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3h4.017c.163 0 .326.02.485.06L17 4m-7 10v5a2 2 0 002 2h.085a2 2 0 001.736-.97l1.9-3.8z"></path></svg>
+                                    <span>Không thích</span>
+                                    (<span id="post-dislikes-count">{{ $post->dislikes()->count() }}</span>)
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Comments Section --}}
                         <div class="mt-8 pt-6 border-t dark:border-gray-600" id="comments-section">
-                            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Bình luận</h3>
+                            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Bình luận (<span id="comments-count">{{ $post->comments->count() }}</span>)</h3>
 
-                            <!-- Comment Form -->
                             <form id="comment-form" action="{{ route('comments.store') }}" method="POST" class="mb-8">
                                 @csrf
                                 <input type="hidden" name="post_id" value="{{ $post->id }}">
                                 <div class="mb-4">
                                     <label for="content" class="sr-only">Nội dung bình luận</label>
-                                    <textarea name="content" id="content" rows="4" class="w-full px-3 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Viết bình luận của bạn...">{{ old('content') }}</textarea>
+                                    <textarea name="content" id="content" rows="4" class="w-full px-3 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Viết bình luận của bạn..."></textarea>
                                     <p id="content-error" class="text-red-500 text-xs mt-1"></p>
                                 </div>
                                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Gửi bình luận</button>
                             </form>
 
-                            <!-- Display Comments -->
                             <div id="comments-list" class="space-y-6">
-                                @forelse ($post->comments->sortByDesc('created_at') as $comment)
-                                    <div class="p-4 rounded-lg shadow-sm {{ ($comment->user && $comment->user->role == 'Admin') ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-50 dark:bg-gray-700' }}">
-                                        <div class="flex items-center mb-2">
-                                            <div class="font-bold text-gray-800 dark:text-gray-100">
-                                                @if ($comment->user)
-                                                    {{ $comment->user->name }}
-                                                    @if ($comment->user->role == 'Admin')
-                                                        <span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Admin</span>
-                                                    @endif
-                                                @else
-                                                    {{ $comment->anonymous_name }}
-                                                @endif
-                                            </div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400 ml-3">{{ $comment->created_at->diffForHumans() }}</div>
-                                        </div>
-                                        <p class="text-gray-700 dark:text-gray-300">{{ $comment->content }}</p>
-                                    </div>
+                                @forelse ($post->comments as $comment)
+                                    @include('guest._comment', ['comment' => $comment])
                                 @empty
                                     <p id="no-comments-message" class="text-gray-500 dark:text-gray-400">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
                                 @endforelse
@@ -118,78 +117,173 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function() {
-            $('#comment-form').on('submit', function(e) {
-                e.preventDefault(); // Prevent default form submission
-                console.log('Form submitted via AJAX.');
+@endsection
 
-                let form = $(this);
-                let url = form.attr('action');
-                let method = form.attr('method');
-                let formData = form.serialize();
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const mainContentArea = document.querySelector('.md\\:col-span-2');
 
-                // Clear previous errors
-                $('#content-error').text('');
+    // Function to handle all AJAX requests
+    async function sendRequest(url, data) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw { status: response.status, data: errorData };
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('AJAX Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Đã có lỗi xảy ra. Vui lòng thử lại!',
+            });
+            throw error;
+        }
+    }
 
-                $.ajax({
-                    url: url,
-                    type: method,
-                    data: formData,
-                    dataType: 'json',
-                    success: function(response) {
-                        console.log('AJAX Success Response:', response);
-                        if (response.success) {
-                            // Append new comment to the list
-                            let newCommentHtml = `
-                                <div class="p-4 rounded-lg shadow-sm ${response.comment.author_role === 'Admin' ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-50 dark:bg-gray-700'}">
-                                    <div class="flex items-center mb-2">
-                                        <div class="font-bold text-gray-800 dark:text-gray-100">
-                                            ${response.comment.author}
-                                            ${response.comment.author_role === 'Admin' ? '<span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Admin</span>' : ''}
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400 ml-3">${response.comment.created_at_for_humans}</div>
-                                    </div>
-                                    <p class="text-gray-700 dark:text-gray-300">${response.comment.content}</p>
-                                </div>
-                            `;
-                            $('#comments-list').prepend(newCommentHtml); // Add to top
-                            console.log('Comment HTML appended:', newCommentHtml);
+    // --- Event Delegation for all interactions ---
+    mainContentArea.addEventListener('click', function(e) {
+        // Post Interactions
+        const postInteractBtn = e.target.closest('.post-interact-btn');
+        if (postInteractBtn) {
+            const postId = postInteractBtn.dataset.postId;
+            const type = postInteractBtn.dataset.type;
 
-                            // Clear the textarea
-                            $('#content').val('');
+            sendRequest('{{ route("posts.interact") }}', { post_id: postId, type: type })
+                .then(data => {
+                    document.getElementById('post-likes-count').textContent = data.likes;
+                    document.getElementById('post-dislikes-count').textContent = data.dislikes;
+                });
+            return; 
+        }
 
-                            // Remove "no comments" message if present
-                            $('#no-comments-message').remove();
+        // Comment Like button
+        const likeBtn = e.target.closest('.like-comment-btn');
+        if (likeBtn) {
+            const commentId = likeBtn.dataset.commentId;
+            sendRequest('{{ route("comments.interact") }}', { comment_id: commentId })
+                .then(data => {
+                    document.getElementById(`comment-likes-count-${commentId}`).textContent = data.likes;
+                });
+            return;
+        }
 
-                            // Optional: Show a success notification
-                            Swal.fire({
-                                icon: 'success',
-                                title: response.message,
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error('AJAX Error Response:', xhr);
-                        if (xhr.status === 422) { // Validation error
-                            let errors = xhr.responseJSON.errors;
-                            if (errors.content) {
-                                $('#content-error').text(errors.content[0]);
-                            }
+        // Reply button
+        const replyBtn = e.target.closest('.reply-btn');
+        if (replyBtn) {
+            const commentId = replyBtn.dataset.commentId;
+            const replyForm = document.getElementById(`reply-form-${commentId}`);
+            if (replyForm) {
+                replyForm.classList.toggle('hidden');
+            }
+        }
+    });
+
+    // --- Comment & Reply Form Submission ---
+    mainContentArea.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form.matches('#comment-form') || form.matches('.comment-reply-form')) {
+            e.preventDefault();
+            
+            const contentTextarea = form.querySelector('textarea[name="content"]');
+            const content = contentTextarea.value.trim();
+            const errorP = form.querySelector('.reply-content-error, #content-error');
+            
+            if (!content) {
+                if (errorP) errorP.textContent = 'Vui lòng nhập nội dung.';
+                return;
+            } else {
+                if (errorP) errorP.textContent = '';
+            }
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            sendRequest(form.action, data)
+                .then(response => {
+                    if (response.success) {
+                        const newCommentHtml = createCommentHtml(response.comment, {{ $post->id }});
+
+                        if (response.comment.parent_id) {
+                            const repliesContainer = document.getElementById(`replies-container-${response.comment.parent_id}`);
+                            repliesContainer.insertAdjacentHTML('beforeend', newCommentHtml);
                         } else {
-                            // Generic error message
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Đã xảy ra lỗi khi gửi bình luận.',
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
+                            const commentsList = document.getElementById('comments-list');
+                            commentsList.insertAdjacentHTML('afterbegin', newCommentHtml);
+                            document.getElementById('no-comments-message')?.remove();
+                        }
+                        
+                        const countSpan = document.getElementById('comments-count');
+                        countSpan.textContent = parseInt(countSpan.textContent) + 1;
+
+                        form.reset();
+                        if(form.matches('.comment-reply-form')) {
+                            form.parentElement.classList.add('hidden');
+                        }
+                    }
+                })
+                .catch(error => {
+                    if (error.status === 422 && error.data.errors) {
+                        if (error.data.errors.content && errorP) {
+                            errorP.textContent = error.data.errors.content[0];
                         }
                     }
                 });
-            });
-        });
-    </script>
-@endsection
+        }
+    });
+
+    // Helper function to create comment HTML
+    function createCommentHtml(comment, postId) {
+        const isAdmin = comment.author_role === 'Admin';
+        const authorHtml = isAdmin 
+            ? `${comment.author} <span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Admin</span>`
+            : comment.author;
+
+        return `
+        <div id="comment-${comment.id}" class="p-4 rounded-lg shadow-sm ${isAdmin ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-50 dark:bg-gray-700'}" data-comment-id="${comment.id}">
+            <div class="flex items-center mb-2">
+                <div class="font-bold text-gray-800 dark:text-gray-100">${authorHtml}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 ml-3">${comment.created_at_for_humans}</div>
+            </div>
+            <p class="text-gray-700 dark:text-gray-300 mb-2">${comment.content}</p>
+            <div class="flex items-center space-x-4 text-sm">
+                <button class="like-comment-btn flex items-center text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" data-comment-id="${comment.id}">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.085a2 2 0 00-1.736.97l-1.9 3.8z"></path></svg>
+                    <span>Thích</span> (<span id="comment-likes-count-${comment.id}">0</span>)
+                </button>
+                <button class="reply-btn flex items-center text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400" data-comment-id="${comment.id}">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                    <span>Trả lời</span>
+                </button>
+            </div>
+            <div id="reply-form-${comment.id}" class="hidden mt-4 ml-8">
+                <form class="comment-reply-form" action="{{ route('comments.store') }}" method="POST">
+                    <input type="hidden" name="_token" value="${csrfToken}">
+                    <input type="hidden" name="post_id" value="${postId}">
+                    <input type="hidden" name="parent_id" value="${comment.id}">
+                    <div class="mb-2">
+                        <textarea name="content" rows="3" class="w-full px-3 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Viết câu trả lời của bạn..."></textarea>
+                        <p class="reply-content-error text-red-500 text-xs mt-1"></p>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700">Gửi trả lời</button>
+                </form>
+            </div>
+            <div id="replies-container-${comment.id}" class="ml-8 mt-4 space-y-4 border-l-2 border-gray-200 dark:border-gray-600 pl-4"></div>
+        </div>
+        `;
+    }
+});
+</script>
+@endpush

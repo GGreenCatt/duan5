@@ -72,4 +72,19 @@ class Post extends Model
     {
         return $this->hasMany(Comment::class);
     }
+
+    public function interactions()
+    {
+        return $this->hasMany(PostInteraction::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(PostInteraction::class)->where('type', 'like');
+    }
+
+    public function dislikes()
+    {
+        return $this->hasMany(PostInteraction::class)->where('type', 'dislike');
+    }
 }

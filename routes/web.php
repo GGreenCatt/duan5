@@ -7,6 +7,8 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\UserPostController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\PostInteractionController;
+use App\Http\Controllers\CommentInteractionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,6 +29,10 @@ Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.s
 
 // Comment Route
 Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
+
+// Interaction Routes
+Route::post('/posts/interact', [PostInteractionController::class, 'store'])->name('posts.interact');
+Route::post('/comments/interact', [CommentInteractionController::class, 'store'])->name('comments.interact');
 
 
 /*

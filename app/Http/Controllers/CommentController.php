@@ -13,11 +13,13 @@ class CommentController extends Controller
         $validatedData = $request->validate([
             'post_id' => 'required|exists:posts,id',
             'content' => 'required|string|max:1000',
+            'parent_id' => 'nullable|exists:comments,id',
         ]);
 
         $comment = new Comment();
         $comment->post_id = $validatedData['post_id'];
         $comment->content = $validatedData['content'];
+        $comment->parent_id = $validatedData['parent_id'] ?? null;
 
         if (Auth::check()) {
             $comment->user_id = Auth::id();
@@ -46,6 +48,8 @@ class CommentController extends Controller
                 'content' => $comment->content,
                 'created_at_for_humans' => $comment->created_at->diffForHumans(),
                 'author' => $comment->user ? $comment->user->name : $comment->anonymous_name,
+                'parent_id' => $comment->parent_id,
+                'author_role' => $comment->user ? $comment->user->role : null,
             ]
         ]);
     }
