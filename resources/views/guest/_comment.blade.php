@@ -15,6 +15,17 @@
             @endif
         </div>
         <div class="text-sm text-gray-500 dark:text-gray-400 ml-3">{{ $comment->created_at->diffForHumans() }}</div>
+        @php
+            $isCommentAuthor = false;
+            if (Auth::check() && Auth::id() == $comment->user_id) {
+                $isCommentAuthor = true;
+            } elseif (!Auth::check() && isset($session_anonymous_name) && $session_anonymous_name == $comment->anonymous_name) {
+                $isCommentAuthor = true;
+            }
+        @endphp
+        @if ($comment->status == 'pending' && $isCommentAuthor)
+            <span class="ml-3 px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full dark:bg-yellow-800 dark:text-yellow-100">Đang đợi phê duyệt</span>
+        @endif
     </div>
     <p class="text-gray-700 dark:text-gray-300 mb-2">{{ $comment->content }}</p>
 
@@ -50,7 +61,7 @@
     <div id="replies-container-{{ $comment->id }}" class="ml-8 mt-4 space-y-4 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
         @if($comment->replies)
             @foreach($comment->replies->sortBy('created_at') as $reply)
-                @include('guest._comment', ['comment' => $reply])
+                @include('guest._comment', ['comment' => $reply, 'session_anonymous_name' => $session_anonymous_name])
             @endforeach
         @endif
     </div>

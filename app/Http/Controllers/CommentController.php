@@ -20,6 +20,7 @@ class CommentController extends Controller
         $comment->post_id = $validatedData['post_id'];
         $comment->content = $validatedData['content'];
         $comment->parent_id = $validatedData['parent_id'] ?? null;
+        $comment->status = 'pending';
 
         if (Auth::check()) {
             $comment->user_id = Auth::id();
@@ -50,6 +51,9 @@ class CommentController extends Controller
                 'author' => $comment->user ? $comment->user->name : $comment->anonymous_name,
                 'parent_id' => $comment->parent_id,
                 'author_role' => $comment->user ? $comment->user->role : null,
+                'user_id' => $comment->user_id, // Add user_id
+                'anonymous_name' => $comment->anonymous_name, // Ensure anonymous_name is always present
+                'status' => $comment->status, // Add status
             ]
         ]);
     }

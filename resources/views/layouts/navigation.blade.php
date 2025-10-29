@@ -18,6 +18,9 @@
                     <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
                         {{ __('Quản lý danh mục') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('posts.comments.index')" :active="request()->routeIs('posts.comments.index')">
+                        {{ __('Quản lý bình luận') }}
+                    </x-nav-link>
                 </div>
             </div>
 

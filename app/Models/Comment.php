@@ -15,6 +15,7 @@ class Comment extends Model
         'anonymous_name',
         'content',
         'parent_id',
+        'status',
     ];
 
     public function user()

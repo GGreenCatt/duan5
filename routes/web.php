@@ -71,7 +71,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{post}/delete-gallery', [PostController::class, 'deleteGallery'])->name('deleteGallery');
 
             // Comment Management (Admin)
-            Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+            Route::get('/comments', [App\Http\Controllers\Admin\CommentController::class, 'index'])->name('comments.index');
+            Route::put('/comments/{comment}/approve', [App\Http\Controllers\Admin\CommentController::class, 'approve'])->name('comments.approve');
+            Route::delete('/comments/{comment}', [App\Http\Controllers\Admin\CommentController::class, 'destroy'])->name('comments.destroy');
         });
     });
 });

@@ -118,14 +118,30 @@ class PostController extends Controller
             'interactions',
             // Load only top-level comments
             'comments' => function ($query) {
-                $query->whereNull('parent_id')->with([
-                    'user', 
-                    'interactions', 
-                    // Recursively load replies and their relationships
-                    'replies' => function($replyQuery) {
-                        $replyQuery->with('user', 'interactions', 'replies');
-                    }
-                ])->orderBy('created_at', 'desc');
+                $query->whereNull('parent_id')
+                      ->where(function ($q) {
+                          $q->where('status', 'approved');
+                          if (Auth::check()) {
+                              $q->orWhere(function ($subQuery) {
+                                  $subQuery->where('user_id', Auth::id())
+                                           ->where('status', 'pending');
+                              });
+                          }
+                      })
+                      ->with([
+                          'user', 
+                          'interactions', 
+                          'replies' => function($replyQuery) {
+                              $replyQuery->where('status', 'approved'); // Only approved replies for everyone
+                              if (Auth::check()) {
+                                  $replyQuery->orWhere(function ($subQuery) {
+                                      $subQuery->where('user_id', Auth::id())
+                                               ->where('status', 'pending');
+                                  });
+                              }
+                              $replyQuery->with('user', 'interactions', 'replies');
+                          }
+                      ])->orderBy('created_at', 'desc');
             }
         ]);
 

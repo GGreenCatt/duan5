@@ -60,8 +60,13 @@
 
                     <div class="mt-8 pt-6 border-t dark:border-gray-600">
                         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Bình luận</h3>
-                        @forelse ($post->comments as $comment)
-                            @include('posts._admin_comment', ['comment' => $comment])
+                        @forelse ($post->comments->filter(function($comment) {
+                            $isCurrentUserComment = Auth::check() && $comment->user_id == Auth::id();
+                            $isCurrentGuestComment = Auth::guest() && session()->has('anonymous_name') && $comment->anonymous_name == session('anonymous_name');
+
+                            return $comment->status == 'approved' || ($comment->status == 'pending' && ($isCurrentUserComment || $isCurrentGuestComment));
+                        }) as $comment)
+                            @include('posts._comment', ['comment' => $comment])
                         @empty
                             <p class="text-gray-600 dark:text-gray-400">Chưa có bình luận nào.</p>
                         @endforelse
