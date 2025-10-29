@@ -48,7 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     /* --- Admin Only Routes --- */
-    Route::middleware('admin')->prefix('admin')->group(function() {
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function() {
         // Category Management
         Route::resource('categories', CategoryController::class)->except(['show']);
         Route::delete('/categories/{category}/delete-image', [CategoryController::class, 'deleteImage'])->name('categories.deleteImage');
@@ -69,12 +69,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{post}', [PostController::class, 'destroy'])->name('destroy');
             Route::delete('/{post}/delete-banner', [PostController::class, 'deleteBanner'])->name('deleteBanner');
             Route::delete('/{post}/delete-gallery', [PostController::class, 'deleteGallery'])->name('deleteGallery');
-
-            // Comment Management (Admin)
-            Route::get('/comments', [App\Http\Controllers\Admin\CommentController::class, 'index'])->name('comments.index');
-            Route::put('/comments/{comment}/approve', [App\Http\Controllers\Admin\CommentController::class, 'approve'])->name('comments.approve');
-            Route::delete('/comments/{comment}', [App\Http\Controllers\Admin\CommentController::class, 'destroy'])->name('comments.destroy');
         });
+
+        // Comment Management (Admin)
+        Route::get('/comments', [App\Http\Controllers\Admin\CommentController::class, 'index'])->name('comments.index');
+        Route::put('/comments/{comment}/approve', [App\Http\Controllers\Admin\CommentController::class, 'approve'])->name('comments.approve');
+        Route::delete('/comments/{comment}', [App\Http\Controllers\Admin\CommentController::class, 'destroy'])->name('comments.destroy');
     });
 });
 

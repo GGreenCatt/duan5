@@ -36,24 +36,18 @@
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $comment->user ? $comment->user->name : ($comment->anonymous_name ?? 'Anonymous') }}</td>
                                         <td class="px-6 py-4">{{ Str::limit($comment->content, 50) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $comment->status == 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }} dark:{{ $comment->status == 'approved' ? 'bg-green-800 text-green-100' : 'bg-yellow-800 text-yellow-100' }}">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white {{ $comment->status == 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100' }} dark:{{ $comment->status == 'approved' ? 'bg-green-800 text-green-100' : 'bg-yellow-800 text-yellow-100' }}">
                                                 {{ $comment->status == 'approved' ? 'Đã phê duyệt' : 'Đang chờ' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $comment->created_at->format('d/m/Y H:i') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            @if ($comment->status == 'pending')
-                                                <form action="{{ route('posts.comments.approve', $comment) }}" method="POST" class="inline-block">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-3">Phê duyệt</button>
-                                                </form>
-                                            @endif
-                                            <form action="{{ route('posts.comments.destroy', $comment) }}" method="POST" class="inline-block delete-comment-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Xóa</button>
-                                            </form>
+                                            <div class="flex items-center">
+                                                @if ($comment->status == 'pending')
+                                                    <button type="button" class="approve-comment-btn text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-3" data-comment-id="{{ $comment->id }}" data-approve-url="{{ route('admin.comments.approve', $comment) }}">Phê duyệt</button>
+                                                @endif
+                                                <button type="button" class="delete-comment-btn text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" data-comment-id="{{ $comment->id }}" data-delete-url="{{ route('admin.comments.destroy', $comment) }}">Xóa</button>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
@@ -76,9 +70,78 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.delete-comment-form').forEach(form => {
-            form.addEventListener('submit', function (event) {
-                event.preventDefault();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        async function sendAjaxRequest(url, method, data = {}) {
+            console.log(`Sending AJAX request to: ${url} with method: ${method}`);
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            };
+
+            if (method === 'PUT' || method === 'DELETE') {
+                headers['X-HTTP-Method-Override'] = method;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST', // Always send as POST for method override
+                    headers: headers,
+                    body: method === 'GET' ? null : JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Đã xảy ra lỗi!');
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('AJAX Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: error.message || 'Đã có lỗi xảy ra. Vui lòng thử lại!',
+                });
+                throw error; // Re-throw to allow further handling if needed
+            }
+        }
+
+        // Handle Approve Button Click
+        document.querySelectorAll('.approve-comment-btn').forEach(button => {
+            button.addEventListener('click', async function () {
+                const commentId = this.dataset.commentId;
+                const approveUrl = this.dataset.approveUrl;
+                const row = this.closest('tr');
+                const statusSpan = row.querySelector('span[class*="rounded-full"]');
+
+                try {
+                    const data = await sendAjaxRequest(approveUrl, 'PUT');
+                    if (data.success) {
+                        Swal.fire(
+                            'Đã phê duyệt!',
+                            'Bình luận đã được phê duyệt thành công.',
+                            'success'
+                        );
+                        // Update UI
+                        statusSpan.textContent = 'Đã phê duyệt';
+                        statusSpan.classList.remove('bg-yellow-100', 'text-yellow-800', 'dark:bg-yellow-800', 'dark:text-yellow-100');
+                        statusSpan.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-800', 'dark:text-green-100');
+                        this.remove(); // Remove the approve button
+                    }
+                } catch (error) {
+                    // Error handled by sendAjaxRequest
+                }
+            });
+        });
+
+        // Handle Delete Button Click
+        document.querySelectorAll('.delete-comment-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const commentId = this.dataset.commentId;
+                const deleteUrl = this.dataset.deleteUrl;
+                const row = this.closest('tr');
 
                 Swal.fire({
                     title: 'Bạn có chắc chắn?',
@@ -89,9 +152,21 @@
                     cancelButtonColor: '#3085d6',
                     confirmButtonText: 'Có, xóa nó!',
                     cancelButtonText: 'Hủy bỏ'
-                }).then((result) => {
+                }).then(async (result) => {
                     if (result.isConfirmed) {
-                        form.submit();
+                        try {
+                            const data = await sendAjaxRequest(deleteUrl, 'DELETE');
+                            if (data.success) {
+                                Swal.fire(
+                                    'Đã xóa!',
+                                    'Bình luận đã được xóa thành công.',
+                                    'success'
+                                );
+                                row.remove(); // Remove the entire row from the table
+                            }
+                        } catch (error) {
+                            // Error handled by sendAjaxRequest
+                        }
                     }
                 });
             });

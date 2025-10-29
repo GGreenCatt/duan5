@@ -18,12 +18,12 @@ class CommentController extends Controller
     {
         $comment->status = 'approved';
         $comment->save();
-        return back()->with('success', 'Bình luận đã được phê duyệt.');
+        return response()->json(['success' => true, 'message' => 'Bình luận đã được phê duyệt.']);
     }
 
     public function destroy(Comment $comment)
     {
         $comment->delete();
-        return back()->with('success', 'Bình luận đã được xóa.');
+        return response()->json(['success' => true, 'message' => 'Bình luận đã được xóa.']);
     }
 }

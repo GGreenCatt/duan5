@@ -12,13 +12,13 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Trang điều khiển') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('posts.list')" :active="request()->routeIs('posts.list')">
+                    <x-nav-link :href="route('admin.posts.list')" :active="request()->routeIs('admin.posts.list')">
                         {{ __('Quản lý bài viết') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
+                    <x-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.index')">
                         {{ __('Quản lý danh mục') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('posts.comments.index')" :active="request()->routeIs('posts.comments.index')">
+                    <x-nav-link :href="route('admin.comments.index')" :active="request()->routeIs('admin.comments.index')">
                         {{ __('Quản lý bình luận') }}
                     </x-nav-link>
                 </div>
