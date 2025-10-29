@@ -1,6 +1,24 @@
 @extends('layouts.guest_app') {{-- Kế thừa layout của khách --}}
 
 @section('content')
+    @php
+        function limitText($value, $limit = 100, $end = '...')
+        {
+            if (empty($value)) {
+                return '';
+            }
+            if (function_exists('mb_strimwidth')) {
+                // Use mb_strimwidth for proper multi-byte string handling
+                return Str::limit($value, $limit, $end);
+            } else {
+                // Fallback to substr for basic string limiting if mbstring is not available
+                if (strlen($value) <= $limit) {
+                    return $value;
+                }
+                return substr($value, 0, $limit) . $end;
+            }
+        }
+    @endphp
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 px-4">
 
@@ -33,7 +51,7 @@
                                     <span class="ml-2">{{ optional($mainHeroPost->created_at)->format('F j, Y') }}</span>
                                 </div>
                                 <h3 class="text-2xl lg:text-3xl font-bold text-white transition-colors duration-200 mb-2 leading-tight">
-                                    {{ $mainHeroPost->title }}
+                                    {{ limitText($mainHeroPost->title, 60, '...') }}
                                 </h3>
                                 <div class="flex items-center text-sm text-gray-200">
                                     <img src="https://ui-avatars.com/api/?name={{ urlencode($mainHeroPost->user->name ?? 'U') }}&color=EBF4FF&background=7F9CF5&size=40" alt="{{ $mainHeroPost->user->name ?? 'User' }}" class="w-6 h-6 rounded-full mr-2 border-2 border-white/50" loading="lazy">
@@ -113,25 +131,24 @@
                             <div class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1.5">
                                 @if($post->category)
                                     @if($post->category->parent)
-                                        {{ Str::limit($post->category->parent->name, 15) }} /
+                                        {{ Str::limit($post->category->parent->name, 15, '...') }} /
                                     @endif
-                                    {{ Str::limit($post->category->name, 20) }}
+                                    {{ Str::limit($post->category->name, 20, '...') }}
                                 @else
                                     <span class="italic text-gray-500 dark:text-gray-400">Chưa phân loại</span>
                                 @endif
                                 <span class="text-gray-500 dark:text-gray-400 mx-1">&bull;</span>
                                 <span class="text-gray-500 dark:text-gray-400">{{ optional($post->created_at)->format('M d, Y') }}</span>
                             </div>
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors duration-200 mb-2 leading-tight flex-grow">
-                                {{ Str::limit($post->title, 60) }}
-                            </h3>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-3 mb-4">
-                                {{ Str::limit(strip_tags($post->short_description), 100) }}
+                                                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors duration-200 mb-2 leading-tight flex-grow">
+                                                            {{ limitText($post->title, 60, '...') }}
+                                                        </h3>                            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-3 mb-4">
+                                {{ limitText(strip_tags($post->short_description), 100, '...') }}
                             </p>
                             <div class="mt-auto flex items-center">
                                 <img src="https://ui-avatars.com/api/?name={{ urlencode($post->user->name ?? 'U') }}&color=4A5568&background=E2E8F0&size=32" alt="{{ $post->user->name ?? 'User' }}" class="w-8 h-8 rounded-full mr-2" loading="lazy">
                                 <div>
-                                    <p class="font-medium text-gray-700 dark:text-gray-300 text-xs">{{ Str::limit($post->user->name ?? 'N/A', 20) }}</p>
+                                    <p class="font-medium text-gray-700 dark:text-gray-300 text-xs">{{ limitText($post->user->name ?? 'N/A', 20, '...') }}</p>
                                     <p class="text-gray-500 dark:text-gray-400 text-xs">{{ optional($post->created_at)->diffForHumans() }}</p>
                                 </div>
                             </div>
@@ -176,10 +193,10 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <h5 class="text-base font-semibold text-gray-900 dark:text-gray-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors duration-200 line-clamp-2 leading-tight">{{ $post->title }}</h5>
+                                    <h5 class="text-base font-semibold text-gray-900 dark:text-gray-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors duration-200 line-clamp-2 leading-tight">{{ limitText($post->title, 60, '...') }}</h5>
                                     <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         <img src="https://ui-avatars.com/api/?name={{ urlencode($post->user->name ?? 'U') }}&color=718096&background=E2E8F0&size=20&font-size=0.4" alt="{{ $post->user->name ?? 'User' }}" class="w-4 h-4 rounded-full mr-1.5" loading="lazy">
-                                        <span>{{ Str::limit($post->user->name ?? 'N/A', 15) }}</span><span class="mx-1.5">&bull;</span><span>{{ optional($post->created_at)->diffForHumans() }}</span>
+                                        <span>{{ limitText($post->user->name ?? 'N/A', 15, '...') }}</span><span class="mx-1.5">&bull;</span><span>{{ optional($post->created_at)->diffForHumans() }}</span>
                                     </div>
                                 </div>
                             </a>
@@ -208,10 +225,10 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <h5 class="text-base font-semibold text-gray-900 dark:text-gray-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors duration-200 line-clamp-2 leading-tight">{{ $post->title }}</h5>
+                                    <h5 class="text-base font-semibold text-gray-900 dark:text-gray-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors duration-200 line-clamp-2 leading-tight">{{ limitText($post->title, 60, '...') }}</h5>
                                      <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         <img src="https://ui-avatars.com/api/?name={{ urlencode($post->user->name ?? 'U') }}&color=718096&background=E2E8F0&size=20&font-size=0.4" alt="{{ $post->user->name ?? 'User' }}" class="w-4 h-4 rounded-full mr-1.5" loading="lazy">
-                                        <span>{{ Str::limit($post->user->name ?? 'N/A', 15) }}</span><span class="mx-1.5">&bull;</span><span>{{ optional($post->created_at)->diffForHumans() }}</span>
+                                        <span>{{ limitText($post->user->name ?? 'N/A', 15, '...') }}</span><span class="mx-1.5">&bull;</span><span>{{ optional($post->created_at)->diffForHumans() }}</span>
                                     </div>
                                 </div>
                             </a>
