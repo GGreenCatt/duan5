@@ -36,8 +36,8 @@
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $comment->user ? $comment->user->name : ($comment->anonymous_name ?? 'Anonymous') }}</td>
                                         <td class="px-6 py-4">{{ Str::limit($comment->content, 50) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white {{ $comment->status == 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100' }} dark:{{ $comment->status == 'approved' ? 'bg-green-800 text-green-100' : 'bg-yellow-800 text-yellow-100' }}">
-                                                {{ $comment->status == 'approved' ? 'Đã phê duyệt' : 'Đang chờ' }}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white {{ $comment->status == 'approved' ? 'bg-green-600' : ($comment->status == 'pending' ? 'bg-yellow-600' : 'bg-red-600') }}">
+                                                {{ $comment->status == 'approved' ? 'Đã phê duyệt' : ($comment->status == 'pending' ? 'Đang chờ' : 'Bị từ chối') }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $comment->created_at->format('d/m/Y H:i') }}</td>
@@ -46,6 +46,9 @@
                                                 @if ($comment->status == 'pending')
                                                     <button type="button" class="approve-comment-btn inline-flex items-center justify-center p-2 rounded-md text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors duration-200" data-comment-id="{{ $comment->id }}" data-approve-url="{{ route('admin.comments.approve', $comment) }}" title="Phê duyệt">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                    </button>
+                                                    <button type="button" class="reject-comment-btn inline-flex items-center justify-center p-2 rounded-md text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200" data-comment-id="{{ $comment->id }}" data-reject-url="{{ route('admin.comments.reject', $comment) }}" title="Từ chối">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                                     </button>
                                                 @endif
                                                 <button type="button" class="delete-comment-btn inline-flex items-center justify-center p-2 rounded-md text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200" data-comment-id="{{ $comment->id }}" data-delete-url="{{ route('admin.comments.destroy', $comment) }}" title="Xóa">
@@ -119,6 +122,7 @@
                 const approveUrl = this.dataset.approveUrl;
                 const row = this.closest('tr');
                 const statusSpan = row.querySelector('span[class*="rounded-full"]');
+                const actionsCell = this.closest('td');
 
                 try {
                     const data = await sendAjaxRequest(approveUrl, 'PUT');
@@ -130,13 +134,57 @@
                         );
                         // Update UI
                         statusSpan.textContent = 'Đã phê duyệt';
-                        statusSpan.classList.remove('bg-yellow-100', 'text-yellow-800', 'dark:bg-yellow-800', 'dark:text-yellow-100');
-                        statusSpan.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-800', 'dark:text-green-100');
-                        this.remove(); // Remove the approve button
+                        statusSpan.classList.remove('bg-yellow-600', 'bg-red-600');
+                        statusSpan.classList.add('bg-green-600');
+                        // Remove approve and reject buttons
+                        actionsCell.querySelectorAll('.approve-comment-btn, .reject-comment-btn').forEach(btn => btn.remove());
                     }
                 } catch (error) {
                     // Error handled by sendAjaxRequest
                 }
+            });
+        });
+
+        // Handle Reject Button Click
+        document.querySelectorAll('.reject-comment-btn').forEach(button => {
+            button.addEventListener('click', async function () {
+                const commentId = this.dataset.commentId;
+                const rejectUrl = this.dataset.rejectUrl;
+                const row = this.closest('tr');
+                const statusSpan = row.querySelector('span[class*="rounded-full"]');
+                const actionsCell = this.closest('td');
+
+                Swal.fire({
+                    title: 'Bạn có chắc chắn muốn từ chối?',
+                    text: "Hành động này sẽ đánh dấu bình luận là bị từ chối!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Có, từ chối nó!',
+                    cancelButtonText: 'Hủy bỏ'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        try {
+                            const data = await sendAjaxRequest(rejectUrl, 'PUT');
+                            if (data.success) {
+                                Swal.fire(
+                                    'Đã từ chối!',
+                                    'Bình luận đã bị từ chối thành công.',
+                                    'success'
+                                );
+                                // Update UI
+                                statusSpan.textContent = 'Bị từ chối';
+                                statusSpan.classList.remove('bg-yellow-600', 'bg-green-600');
+                                statusSpan.classList.add('bg-red-600');
+                                // Remove approve and reject buttons
+                                actionsCell.querySelectorAll('.approve-comment-btn, .reject-comment-btn').forEach(btn => btn.remove());
+                            }
+                        } catch (error) {
+                            // Error handled by sendAjaxRequest
+                        }
+                    }
+                });
             });
         });
 

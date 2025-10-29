@@ -20,11 +20,18 @@ class CommentController extends Controller
         $comment->post_id = $validatedData['post_id'];
         $comment->content = $validatedData['content'];
         $comment->parent_id = $validatedData['parent_id'] ?? null;
-        $comment->status = 'pending';
 
         if (Auth::check()) {
             $comment->user_id = Auth::id();
+            // Admins' comments are automatically approved
+            if (Auth::user()->role === 'Admin') {
+                $comment->status = 'approved';
+            } else {
+                $comment->status = 'pending';
+            }
         } else {
+            // Guests' comments are always pending
+            $comment->status = 'pending';
             // Check if anonymous name exists in session
             if (session()->has('anonymous_name')) {
                 $comment->anonymous_name = session('anonymous_name');

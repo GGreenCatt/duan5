@@ -26,4 +26,11 @@ class CommentController extends Controller
         $comment->delete();
         return response()->json(['success' => true, 'message' => 'Bình luận đã được xóa.']);
     }
+
+    public function reject(Comment $comment)
+    {
+        $comment->status = 'rejected';
+        $comment->save();
+        return response()->json(['success' => true, 'message' => 'Bình luận đã bị từ chối.']);
+    }
 }

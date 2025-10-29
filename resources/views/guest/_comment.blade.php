@@ -25,6 +25,8 @@
         @endphp
         @if ($comment->status == 'pending' && $isCommentAuthor)
             <span class="ml-3 px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full dark:bg-yellow-800 dark:text-yellow-100">Đang đợi phê duyệt</span>
+        @elseif ($comment->status == 'rejected' && $isCommentAuthor)
+            <span class="ml-3 px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full dark:bg-red-800 dark:text-red-100">Bị từ chối</span>
         @endif
     </div>
     <p class="text-gray-700 dark:text-gray-300 mb-2">{{ $comment->content }}</p>

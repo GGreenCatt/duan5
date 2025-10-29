@@ -302,7 +302,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const pendingBadge = comment.status === 'pending' && isCommentAuthor
             ? '<span class="ml-3 px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full dark:bg-yellow-800 dark:text-yellow-100">Đang đợi phê duyệt</span>'
-            : '';
+            : comment.status === 'rejected' && isCommentAuthor
+                ? '<span class="ml-3 px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full dark:bg-red-800 dark:text-red-100">Bị từ chối</span>'
+                : '';
 
         return `
         <div id="comment-${comment.id}" class="p-4 rounded-lg shadow-sm ${isAdmin ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-50 dark:bg-gray-700'}" data-comment-id="${comment.id}">
