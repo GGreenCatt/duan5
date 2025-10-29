@@ -59,7 +59,7 @@ class CategoryController extends Controller
     
         $category->save();
     
-        return redirect()->route('categories.index')->with('success', 'Danh mục đã được tạo thành công.');
+        return redirect()->route('admin.categories.index')->with('success', 'Danh mục đã được tạo thành công.');
     }
 
     /**
@@ -105,7 +105,7 @@ class CategoryController extends Controller
 
         $category->save();
 
-        return redirect()->route('categories.index')->with('success', 'Danh mục đã được cập nhật thành công.');
+        return redirect()->route('admin.categories.index')->with('success', 'Danh mục đã được cập nhật thành công.');
     }
 
 
@@ -120,7 +120,7 @@ class CategoryController extends Controller
     
         $category->delete();
     
-        return redirect()->route('categories.index')->with('success', 'Danh mục đã được xóa thành công.');
+        return redirect()->route('admin.categories.index')->with('success', 'Danh mục đã được xóa thành công.');
     }
 
      public function deleteImage(Category $category)

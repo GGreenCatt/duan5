@@ -24,7 +24,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
-                    <form method="POST" action="{{ route('posts.update', $post->id) }}" enctype="multipart/form-data" id="editForm">
+                    <form method="POST" action="{{ route('admin.posts.update', $post->id) }}" enctype="multipart/form-data" id="editForm">
                         @csrf
                         @method('PUT')
                         {{-- ===== CẬP NHẬT: Thêm các input hidden để lưu trạng thái xóa ảnh ===== --}}
@@ -187,12 +187,12 @@
                     if (result.isConfirmed) {
                         formChanged = false;
                         window.removeEventListener('beforeunload', handleBeforeUnload);
-                        window.location.href = '{{ route("posts.list") }}';
+                        window.location.href = '{{ route("admin.posts.list") }}';
                     }
                 });
             } else {
                 window.removeEventListener('beforeunload', handleBeforeUnload);
-                window.location.href = '{{ route("posts.list") }}';
+                window.location.href = '{{ route("admin.posts.list") }}';
             }
         });
 

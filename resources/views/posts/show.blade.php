@@ -73,7 +73,7 @@
                     </div>
 
                     <div class="mt-8 pt-6 border-t dark:border-gray-600">
-                         <a href="{{ route('posts.list') }}" class="text-indigo-400 hover:text-indigo-300">&larr; Quay lại danh sách</a>
+                         <a href="{{ route('admin.posts.list') }}" class="text-indigo-400 hover:text-indigo-300">&larr; Quay lại danh sách</a>
                     </div>
 
                 </div>

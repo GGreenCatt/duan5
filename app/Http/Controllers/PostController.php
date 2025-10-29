@@ -99,7 +99,7 @@ class PostController extends Controller
 
         $post->save();
 
-        return redirect()->route('posts.list')->with('success', 'Bài viết đã được tạo thành công.');
+        return redirect()->route('admin.posts.list')->with('success', 'Bài viết đã được tạo thành công.');
     }
     
     public function show(Post $post)
@@ -242,7 +242,7 @@ class PostController extends Controller
 
         $post->save();
 
-        return redirect()->route('posts.list')->with('success', 'Bài viết đã được cập nhật thành công.');
+        return redirect()->route('admin.posts.list')->with('success', 'Bài viết đã được cập nhật thành công.');
     }
 
     public function destroy(Post $post)
@@ -252,7 +252,7 @@ class PostController extends Controller
             foreach ($post->gallery_images as $image) { Storage::disk('public')->delete($image); }
         }
         $post->delete();
-        return redirect()->route('posts.list')->with('success', 'Bài viết đã được xóa thành công.');
+        return redirect()->route('admin.posts.list')->with('success', 'Bài viết đã được xóa thành công.');
     }
 
     public function bulkDestroy(Request $request)
@@ -270,7 +270,7 @@ class PostController extends Controller
             }
         }
         Post::destroy($postIds);
-        return redirect()->route('posts.list')->with('success', count($postIds) . ' bài viết đã được xóa thành công.');
+        return redirect()->route('admin.posts.list')->with('success', count($postIds) . ' bài viết đã được xóa thành công.');
     }
 
     public function exportPosts()

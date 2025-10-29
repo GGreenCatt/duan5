@@ -7,7 +7,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <form id="create-post-form" method="POST" action="{{ route('posts.store') }}" enctype="multipart/form-data" class="space-y-8">
+            <form id="create-post-form" method="POST" action="{{ route('admin.posts.store') }}" enctype="multipart/form-data" class="space-y-8">
                 @csrf
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
