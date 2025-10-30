@@ -27,6 +27,14 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        // Check if the authenticated user is banned
+        if (Auth::user()->status === 'banned') {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->withErrors(['email' => 'Tài khoản của bạn đã bị cấm. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.']);
+        }
+
         $request->session()->regenerate();
 
         // Thêm dòng này để gắn session thông báo chào mừng

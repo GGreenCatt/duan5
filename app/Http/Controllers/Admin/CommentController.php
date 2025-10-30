@@ -5,9 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            Gate::authorize('manage-comments');
+            return $next($request);
+        });
+    }
+
     public function index()
     {
         $comments = Comment::with('post', 'user')->latest()->paginate(10);

@@ -7,14 +7,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class CategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth')->except(['show']);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        Gate::authorize('manage-categories');
+
         $categories_paginated = Category::with(['children.posts', 'posts'])
                                 ->whereNull('parent_id')
                                 ->withCount('posts')
@@ -33,6 +41,8 @@ class CategoryController extends Controller
      */
     public function create()
     {
+        Gate::authorize('manage-categories');
+
         $parentCategories = Category::whereNull('parent_id')->get();
         return view('categories.create', compact('parentCategories'));
     }
@@ -42,6 +52,8 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('manage-categories');
+
         // SỬA ĐỔI: Thay 'image' thành 'banner_image' để khớp với form
         $validatedData = $request->validate([
             'name' => 'required|max:255|unique:categories',
@@ -76,6 +88,8 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
+        Gate::authorize('manage-categories');
+
         $categories = Category::whereNull('parent_id')->where('id', '!=', $category->id)->get();
         return view('categories.edit', compact('category', 'categories'));
     }
@@ -85,6 +99,8 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
+        Gate::authorize('manage-categories');
+
         // SỬA ĐỔI: Thay 'image' thành 'banner_image' để khớp với form
         $validatedData = $request->validate([
             'name' => 'required|max:255|unique:categories,name,' . $category->id,
@@ -114,6 +130,8 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+        Gate::authorize('manage-categories');
+
         if ($category->image) {
             Storage::disk('public')->delete($category->image);
         }
@@ -125,6 +143,8 @@ class CategoryController extends Controller
 
      public function deleteImage(Category $category)
     {
+        Gate::authorize('manage-categories');
+
         if ($category->image) {
             Storage::disk('public')->delete($category->image);
             $category->image = null;

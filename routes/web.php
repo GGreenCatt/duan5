@@ -28,6 +28,9 @@ Route::get('/categories', [UserDashboardController::class, 'allCategories'])->na
 Route::get('/posts/category/{category:slug}', [UserPostController::class, 'postsByCategory'])->name('guest.posts.by_category');
 Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 
+Route::get('/banned', function () {
+    return view('banned');
+})->name('banned');
 
 /*
 |--------------------------------------------------------------------------
@@ -77,6 +80,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/comments/{comment}/approve', [App\Http\Controllers\Admin\CommentController::class, 'approve'])->name('comments.approve');
         Route::put('/comments/{comment}/reject', [App\Http\Controllers\Admin\CommentController::class, 'reject'])->name('comments.reject');
         Route::delete('/comments/{comment}', [App\Http\Controllers\Admin\CommentController::class, 'destroy'])->name('comments.destroy');
+
+        // User Management (Admin)
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
+            Route::get('/{user}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('show');
+            Route::put('/{user}/ban', [App\Http\Controllers\Admin\UserController::class, 'ban'])->name('ban');
+            Route::put('/{user}/unban', [App\Http\Controllers\Admin\UserController::class, 'unban'])->name('unban');
+            Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('destroy');
+            Route::get('/{user}/comments', [App\Http\Controllers\Admin\UserController::class, 'comments'])->name('comments');
+            Route::put('/{user}/update-role', [App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('updateRole');
+            Route::get('/{user}/edit', [App\Http\Controllers\Admin\UserController::class, 'editUser'])->name('edit');
+            Route::put('/{user}', [App\Http\Controllers\Admin\UserController::class, 'updateUser'])->name('update');
+        });
     });
 });
 

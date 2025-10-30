@@ -10,12 +10,19 @@ use App\Exports\PostsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
-    // ... (Các phương thức listPosts, postsByCategory, create, store không đổi) ...
+    public function __construct()
+    {
+        $this->middleware('auth')->except(['show']);
+    }
+
     public function listPosts(Request $request)
     {
+        Gate::authorize('admin');
+
         $parentCategories = Category::whereNull('parent_id')->with('children')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
         $query = Post::with(['category', 'user'])->orderBy('created_at', 'desc');
@@ -44,6 +51,8 @@ class PostController extends Controller
      */
     public function postsByCategory(Category $category)
     {
+        Gate::authorize('admin');
+
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
         $categoryIds = $category->children()->pluck('id')->push($category->id);
@@ -59,6 +68,8 @@ class PostController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Post::class);
+
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         $allCategories = Category::orderBy('name', 'asc')->get();
         return view('posts.create', compact('parentCategories', 'allCategories'));
@@ -66,6 +77,8 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Post::class);
+
         $validatedData = $request->validate([
             'title' => 'required|max:100',
             'short_description' => 'required|max:200',
@@ -156,6 +169,8 @@ class PostController extends Controller
 
     public function showForAdmin(Post $post)
     {
+        Gate::authorize('admin');
+
         $post->load([
             'category.parent', 
             'user', 
@@ -176,6 +191,8 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
+        $this->authorize('update', $post);
+
         $categories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
         return view('posts.edit', compact('post', 'categories'));
     }
@@ -185,6 +202,8 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        $this->authorize('update', $post);
+
         $validatedData = $request->validate([
             'title' => 'required|max:255',
             'short_description' => 'required',
@@ -247,6 +266,8 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
+        $this->authorize('delete', $post);
+
         if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
         if (is_array($post->gallery_images)) {
             foreach ($post->gallery_images as $image) { Storage::disk('public')->delete($image); }
@@ -257,6 +278,8 @@ class PostController extends Controller
 
     public function bulkDestroy(Request $request)
     {
+        Gate::authorize('admin');
+
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:posts,id',
@@ -275,6 +298,8 @@ class PostController extends Controller
 
     public function exportPosts()
     {
+        Gate::authorize('admin');
+
         return Excel::download(new PostsExport, 'danh-sach-bai-viet.xlsx');
     }
 }
