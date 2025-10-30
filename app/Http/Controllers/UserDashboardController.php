@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ContactFormMail;
 
 class UserDashboardController extends Controller
 {
@@ -49,5 +51,23 @@ class UserDashboardController extends Controller
     public function contact()
     {
         return view('guest.contact');
+    }
+
+    /**
+     * Xử lý gửi form liên hệ.
+     */
+    public function sendContactEmail(Request $request)
+    {
+        $validatedData = $request->validate([
+            'full-name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        // Gửi email
+        Mail::to(config('mail.from.address'))->send(new ContactFormMail($validatedData));
+
+        return redirect()->route('guest.contact')->with('success', 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.');
     }
 }
