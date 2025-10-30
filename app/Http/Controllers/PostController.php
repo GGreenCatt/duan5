@@ -137,7 +137,7 @@ class PostController extends Controller
                           if (Auth::check()) {
                               $q->orWhere(function ($subQuery) {
                                   $subQuery->where('user_id', Auth::id())
-                                           ->where('status', 'pending');
+                                           ->whereIn('status', ['pending', 'rejected']);
                               });
                           }
                       })
@@ -149,7 +149,7 @@ class PostController extends Controller
                               if (Auth::check()) {
                                   $replyQuery->orWhere(function ($subQuery) {
                                       $subQuery->where('user_id', Auth::id())
-                                               ->where('status', 'pending');
+                                               ->whereIn('status', ['pending', 'rejected']);
                                   });
                               }
                               $replyQuery->with('user', 'interactions', 'replies');
