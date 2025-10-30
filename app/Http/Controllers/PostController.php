@@ -21,7 +21,7 @@ class PostController extends Controller
 
     public function listPosts(Request $request)
     {
-        Gate::authorize('admin');
+        Gate::authorize('manage-posts');
 
         $parentCategories = Category::whereNull('parent_id')->with('children')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
@@ -51,7 +51,7 @@ class PostController extends Controller
      */
     public function postsByCategory(Category $category)
     {
-        Gate::authorize('admin');
+        Gate::authorize('manage-posts');
 
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
@@ -169,7 +169,7 @@ class PostController extends Controller
 
     public function showForAdmin(Post $post)
     {
-        Gate::authorize('admin');
+        Gate::authorize('manage-posts');
 
         $post->load([
             'category.parent', 
@@ -278,7 +278,7 @@ class PostController extends Controller
 
     public function bulkDestroy(Request $request)
     {
-        Gate::authorize('admin');
+        Gate::authorize('manage-posts');
 
         $request->validate([
             'ids' => 'required|array',
@@ -298,7 +298,7 @@ class PostController extends Controller
 
     public function exportPosts()
     {
-        Gate::authorize('admin');
+        Gate::authorize('manage-posts');
 
         return Excel::download(new PostsExport, 'danh-sach-bai-viet.xlsx');
     }

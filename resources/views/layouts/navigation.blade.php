@@ -24,6 +24,9 @@
                     <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.index')">
                         {{ __('Quản lý người dùng') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.contacts.index')" :active="request()->routeIs('admin.contacts.index')">
+                        {{ __('Quản lý liên hệ') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -92,6 +95,9 @@
                         </x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.index')">
                             {{ __('Quản lý người dùng') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.contacts.index')" :active="request()->routeIs('admin.contacts.index')">
+                            {{ __('Quản lý liên hệ') }}
                         </x-responsive-nav-link>
                     </div>
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">

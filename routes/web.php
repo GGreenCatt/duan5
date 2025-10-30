@@ -93,6 +93,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{user}/edit', [App\Http\Controllers\Admin\UserController::class, 'editUser'])->name('edit');
             Route::put('/{user}', [App\Http\Controllers\Admin\UserController::class, 'updateUser'])->name('update');
         });
+
+        // Contact Management (Admin)
+        Route::prefix('contacts')->name('contacts.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\ContactController::class, 'index'])->name('index');
+            Route::get('/{contact}', [App\Http\Controllers\Admin\ContactController::class, 'show'])->name('show');
+        });
     });
 });
 

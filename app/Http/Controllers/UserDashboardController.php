@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Category;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactFormMail;
@@ -63,6 +64,14 @@ class UserDashboardController extends Controller
             'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
+        ]);
+
+        // Save to database
+        Contact::create([
+            'name' => $validatedData['full-name'],
+            'email' => $validatedData['email'],
+            'subject' => $validatedData['subject'],
+            'message' => $validatedData['message'],
         ]);
 
         // Gửi email
