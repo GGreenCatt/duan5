@@ -21,7 +21,7 @@ class DashboardController extends Controller
         // Nếu là Admin (hoặc vai trò khác), tiếp tục hiển thị trang dashboard của Admin
 
         // Lấy tất cả bài viết
-        $posts = Post::latest()->take(5)->get();
+        $posts = Post::withCount(['comments', 'likes', 'dislikes'])->latest()->take(5)->get();
 
         // Thống kê số liệu tổng
         $totalPosts = Post::count();
