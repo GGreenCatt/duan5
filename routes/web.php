@@ -27,13 +27,6 @@ Route::get('/categories', [UserDashboardController::class, 'allCategories'])->na
 Route::get('/posts/category/{category:slug}', [UserPostController::class, 'postsByCategory'])->name('guest.posts.by_category');
 Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 
-// Comment Route
-Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
-
-// Interaction Routes
-Route::post('/posts/interact', [PostInteractionController::class, 'store'])->name('posts.interact');
-Route::post('/comments/interact', [CommentInteractionController::class, 'store'])->name('comments.interact');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +34,13 @@ Route::post('/comments/interact', [CommentInteractionController::class, 'store']
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    // Comment Route
+    Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
+
+    // Interaction Routes
+    Route::post('/posts/interact', [PostInteractionController::class, 'store'])->name('posts.interact');
+    Route::post('/comments/interact', [CommentInteractionController::class, 'store'])->name('comments.interact');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

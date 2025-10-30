@@ -1,5 +1,5 @@
 @extends('layouts.guest_app') {{-- Kế thừa layout của khách --}}
-
+@vite(['resources/css/app.css', 'resources/js/app.js'])
 @section('content')
     @php
         function limitText($value, $limit = 100, $end = '...')
