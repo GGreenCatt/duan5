@@ -13,15 +13,15 @@ class UserDashboardController extends Controller
 {
     public function index()
     {
-        $trendingPosts = Post::with('category', 'user')->orderBy('created_at', 'desc')->take(3)->get();
-        $posts = Post::with('category', 'user')->orderBy('created_at', 'desc')->paginate(9);
+        $trendingPosts = Post::with(['category.parent', 'user' => fn($query) => $query->select('id', 'name')])->withCount('comments')->orderBy('created_at', 'desc')->take(3)->get();
+        $posts = Post::with(['category.parent', 'user' => fn($query) => $query->select('id', 'name')])->withCount('comments')->orderBy('created_at', 'desc')->paginate(9);
         $categories = Category::withCount('posts')->whereNull('parent_id')->orderBy('name', 'asc')->get();
 
-        $congNghePosts = Post::whereHas('category', function($q){
+        $congNghePosts = Post::with(['user' => fn($query) => $query->select('id', 'name'), 'category.parent'])->withCount('comments')->whereHas('category', function($q){
             $q->where('slug', 'cong-nghe')->orWhereHas('parent', fn($q) => $q->where('slug', 'cong-nghe'));
         })->latest()->take(3)->get();
         
-        $nganHangPosts = Post::whereHas('category', function($q){
+        $nganHangPosts = Post::with(['user' => fn($query) => $query->select('id', 'name'), 'category.parent'])->withCount('comments')->whereHas('category', function($q){
             $q->where('slug', 'ngan-hang')->orWhereHas('parent', fn($q) => $q->where('slug', 'ngan-hang'));
         })->latest()->take(3)->get();
 

@@ -1,24 +1,6 @@
 @extends('layouts.guest_app') {{-- Kế thừa layout của khách --}}
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @section('content')
-    @php
-        function limitText($value, $limit = 100, $end = '...')
-        {
-            if (empty($value)) {
-                return '';
-            }
-            if (function_exists('mb_strimwidth')) {
-                // Use mb_strimwidth for proper multi-byte string handling
-                return Str::limit($value, $limit, $end);
-            } else {
-                // Fallback to substr for basic string limiting if mbstring is not available
-                if (strlen($value) <= $limit) {
-                    return $value;
-                }
-                return substr($value, 0, $limit) . $end;
-            }
-        }
-    @endphp
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 px-4">
 

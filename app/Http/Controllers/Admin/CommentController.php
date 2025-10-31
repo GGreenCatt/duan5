@@ -42,4 +42,31 @@ class CommentController extends Controller
         $comment->save();
         return response()->json(['success' => true, 'message' => 'Bình luận đã bị từ chối.']);
     }
+
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|string|in:approve,reject,delete',
+            'comment_ids' => 'required|array',
+            'comment_ids.*' => 'exists:comments,id',
+        ]);
+
+        $commentIds = $request->input('comment_ids');
+        $action = $request->input('action');
+        $count = count($commentIds);
+
+        switch ($action) {
+            case 'approve':
+                Comment::whereIn('id', $commentIds)->update(['status' => 'approved']);
+                return response()->json(['success' => true, 'message' => "Đã phê duyệt thành công {$count} bình luận."]);
+            case 'reject':
+                Comment::whereIn('id', $commentIds)->update(['status' => 'rejected']);
+                return response()->json(['success' => true, 'message' => "Đã từ chối thành công {$count} bình luận."]);
+            case 'delete':
+                Comment::whereIn('id', $commentIds)->delete();
+                return response()->json(['success' => true, 'message' => "Đã xóa thành công {$count} bình luận."]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Hành động không hợp lệ.'], 400);
+    }
 }
