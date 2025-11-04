@@ -21,3 +21,5 @@ yarn-error.log
 .gemini/
 gha-creds-*.json
 GEMINI.md
+
+.vercel
