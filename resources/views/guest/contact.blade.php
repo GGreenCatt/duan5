@@ -53,8 +53,15 @@
                         </div>
                         <div>
                             <label for="email" class="sr-only">Email</label>
-                            <input id="email" name="email" type="email" autocomplete="email" value="{{ old('email') }}" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md @error('email') border-red-500 @enderror" placeholder="Email">
+                            <input id="email" name="email" type="email" autocomplete="email" value="{{ old('email', $email ?? '') }}" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md @error('email') border-red-500 @enderror" placeholder="Email">
                             @error('email')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="phone-number" class="sr-only">Số điện thoại</label>
+                            <input type="text" name="phone-number" id="phone-number" autocomplete="tel" value="{{ old('phone-number') }}" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md @error('phone-number') border-red-500 @enderror" placeholder="Số điện thoại">
+                            @error('phone-number')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

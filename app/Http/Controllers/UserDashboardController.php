@@ -49,9 +49,10 @@ class UserDashboardController extends Controller
     /**
      * Hiển thị trang liên hệ.
      */
-    public function contact()
+    public function contact(Request $request)
     {
-        return view('guest.contact');
+        $email = $request->query('email');
+        return view('guest.contact', ['email' => $email]);
     }
 
     /**
@@ -62,6 +63,7 @@ class UserDashboardController extends Controller
         $validatedData = $request->validate([
             'full-name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'phone-number' => 'nullable|string|max:20',
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
         ]);
@@ -70,6 +72,7 @@ class UserDashboardController extends Controller
         Contact::create([
             'name' => $validatedData['full-name'],
             'email' => $validatedData['email'],
+            'phone_number' => $validatedData['phone-number'] ?? null,
             'subject' => $validatedData['subject'],
             'message' => $validatedData['message'],
         ]);
