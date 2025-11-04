@@ -1,0 +1,6 @@
+/storage/logs
+/storage/framework/sessions
+/storage/framework/cache
+/storage/framework/testing
+.env
+node_modules
