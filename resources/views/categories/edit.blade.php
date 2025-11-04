@@ -15,7 +15,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('categories.update', $category->id) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
@@ -79,7 +79,7 @@
                         </div>
 
                         <div class="flex items-center justify-end mt-4">
-                            <a href="{{ route('categories.index') }}" class="text-gray-300 hover:text-white mr-4">Hủy</a>
+                            <a href="{{ route('admin.categories.index') }}" class="text-gray-300 hover:text-white mr-4">Hủy</a>
                             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 Cập nhật
                             </button>

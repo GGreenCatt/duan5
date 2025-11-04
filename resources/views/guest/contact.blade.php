@@ -34,24 +34,50 @@
 
             <!-- Form liên hệ -->
             <div class="bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl shadow-lg">
-                <form action="#" method="POST">
+                @if (session('success'))
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        <strong class="font-bold">Thành công!</strong>
+                        <span class="block sm:inline">{{ session('success') }}</span>
+                    </div>
+                @endif
+
+                <form action="{{ route('guest.contact.send') }}" method="POST">
                     @csrf
                     <div class="grid grid-cols-1 gap-y-6">
                         <div>
                             <label for="full-name" class="sr-only">Họ và tên</label>
-                            <input type="text" name="full-name" id="full-name" autocomplete="name" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md" placeholder="Họ và tên">
+                            <input type="text" name="full-name" id="full-name" autocomplete="name" value="{{ old('full-name') }}" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md @error('full-name') border-red-500 @enderror" placeholder="Họ và tên">
+                            @error('full-name')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <label for="email" class="sr-only">Email</label>
-                            <input id="email" name="email" type="email" autocomplete="email" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md" placeholder="Email">
+                            <input id="email" name="email" type="email" autocomplete="email" value="{{ old('email', $email ?? '') }}" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md @error('email') border-red-500 @enderror" placeholder="Email">
+                            @error('email')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="phone-number" class="sr-only">Số điện thoại</label>
+                            <input type="text" name="phone-number" id="phone-number" autocomplete="tel" value="{{ old('phone-number') }}" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md @error('phone-number') border-red-500 @enderror" placeholder="Số điện thoại">
+                            @error('phone-number')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <label for="subject" class="sr-only">Chủ đề</label>
-                            <input type="text" name="subject" id="subject" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md" placeholder="Chủ đề">
+                            <input type="text" name="subject" id="subject" value="{{ old('subject') }}" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md @error('subject') border-red-500 @enderror" placeholder="Chủ đề">
+                            @error('subject')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <label for="message" class="sr-only">Nội dung</label>
-                            <textarea id="message" name="message" rows="4" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border border-gray-300 rounded-md" placeholder="Nội dung"></textarea>
+                            <textarea id="message" name="message" rows="4" class="block w-full shadow-sm py-3 px-4 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 border border-gray-300 rounded-md @error('message') border-red-500 @enderror" placeholder="Nội dung">{{ old('message') }}</textarea>
+                            @error('message')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

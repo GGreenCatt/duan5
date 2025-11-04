@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Category;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth; // <-- Thêm dòng này
 
@@ -20,11 +21,11 @@ class DashboardController extends Controller
         // Nếu là Admin (hoặc vai trò khác), tiếp tục hiển thị trang dashboard của Admin
 
         // Lấy tất cả bài viết
-        $posts = Post::all();
+        $posts = Post::withCount(['comments', 'likes', 'dislikes'])->latest()->take(5)->get();
 
         // Thống kê số liệu tổng
-        $totalPosts = $posts->count();
-        $totalViews = $posts->sum('views'); // Nếu bạn có cột 'views' cho lượt tương tác
+        $totalPosts = Post::count();
+        $totalViews = Post::sum('views'); // Nếu bạn có cột 'views' cho lượt tương tác
 
         // Thống kê bài đăng trong tuần và tháng
         $postsThisWeek = Post::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count();
@@ -77,6 +78,9 @@ class DashboardController extends Controller
             $monthlyData[$month - 1] = $count;
         }
 
+        // Lấy danh mục có nhiều bài đăng nhất
+        $categories = Category::withCount('posts')->orderBy('posts_count', 'desc')->take(5)->get();
+
         // Trả về view 'posts.index' thay vì 'dashboard.index'
         return view('posts.index', compact(
             'posts',
@@ -89,7 +93,8 @@ class DashboardController extends Controller
             'weeklyLabels',
             'weeklyData',
             'months',
-            'monthlyData'
+            'monthlyData',
+            'categories'
         ));
     }
 }

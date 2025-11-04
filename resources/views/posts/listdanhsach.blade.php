@@ -59,7 +59,7 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     
                     <div class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-3 md:space-y-0">
-                        <form id="filter-form" method="GET" action="{{ route('posts.list') }}" class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                        <form id="filter-form" method="GET" action="{{ route('admin.posts.list') }}" class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                             <select name="parent_category_id" id="parent_category_id" class="bg-gray-900 border-gray-700 rounded-md shadow-sm text-white text-sm">
                                 <option value="">-- Lọc theo danh mục cha --</option>
                                 @foreach($parentCategories as $parent)
@@ -80,13 +80,13 @@
                         </form>
 
                         <div class="flex space-x-2 w-full md:w-auto">
-                             <a href="{{ route('posts.create') }}" class="w-full md:w-auto text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md">Thêm mới</a>
-                             <a href="{{ route('posts.export') }}" class="w-full md:w-auto text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md">Xuất Excel</a>
+                             <a href="{{ route('admin.posts.create') }}" class="w-full md:w-auto text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md">Thêm mới</a>
+                             <a href="{{ route('admin.posts.export') }}" class="w-full md:w-auto text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md">Xuất Excel</a>
                         </div>
                     </div>
                     
                    {{-- ===== FORM CHO HÀNH ĐỘNG HÀNG LOẠT (ĐÃ CẬP NHẬT) ===== --}}
-                    <form id="bulk-action-form" action="{{ route('posts.bulkDestroy') }}" method="POST">
+                    <form id="bulk-action-form" action="{{ route('admin.posts.bulkDestroy') }}" method="POST">
                         @csrf
                         @method('DELETE')
                         {{-- JavaScript sẽ điền các input ẩn vào đây --}}
@@ -121,11 +121,11 @@
                                         <td data-label="Ngày tạo" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $post->created_at->format('d/m/Y') }}</td>
                                         <td data-label="Hành động" class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium actions-cell">
                                             <div class="flex items-center justify-center space-x-2">
-                                                <a href="{{ route('posts.show_for_admin', $post->id) }}" class="p-2 text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 rounded-full" title="Xem"><i class="fas fa-eye"></i></a>
-                                                <a href="{{ route('posts.edit', $post->id) }}" class="p-2 text-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-full" title="Sửa"><i class="fas fa-edit"></i></a>
+                                                <a href="{{ route('admin.posts.show_for_admin', $post->id) }}" class="p-2 text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 rounded-full" title="Xem"><i class="fas fa-eye"></i></a>
+                                                <a href="{{ route('admin.posts.edit', $post->id) }}" class="p-2 text-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-full" title="Sửa"><i class="fas fa-edit"></i></a>
                                                 <a href="#" data-form-id="delete-form-{{ $post->id }}" class="p-2 text-red-500 bg-red-500/10 hover:bg-red-500/20 rounded-full btn-delete" title="Xóa"><i class="fas fa-trash"></i></a>
                                             </div>
-                                            <form id="delete-form-{{ $post->id }}" action="{{ route('posts.destroy', $post->id) }}" method="POST" class="hidden">@csrf @method('DELETE')</form>
+                                            <form id="delete-form-{{ $post->id }}" action="{{ route('admin.posts.destroy', $post->id) }}" method="POST" class="hidden">@csrf @method('DELETE')</form>
                                         </td>
                                     </tr>
                                 @empty

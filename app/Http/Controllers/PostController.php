@@ -10,12 +10,19 @@ use App\Exports\PostsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
-    // ... (Các phương thức listPosts, postsByCategory, create, store không đổi) ...
+    public function __construct()
+    {
+        $this->middleware('auth')->except(['show']);
+    }
+
     public function listPosts(Request $request)
     {
+        Gate::authorize('manage-posts');
+
         $parentCategories = Category::whereNull('parent_id')->with('children')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
         $query = Post::with(['category', 'user'])->orderBy('created_at', 'desc');
@@ -44,6 +51,8 @@ class PostController extends Controller
      */
     public function postsByCategory(Category $category)
     {
+        Gate::authorize('manage-posts');
+
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         $childCategories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
         $categoryIds = $category->children()->pluck('id')->push($category->id);
@@ -59,6 +68,8 @@ class PostController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Post::class);
+
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
         $allCategories = Category::orderBy('name', 'asc')->get();
         return view('posts.create', compact('parentCategories', 'allCategories'));
@@ -66,6 +77,8 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Post::class);
+
         $validatedData = $request->validate([
             'title' => 'required|max:100',
             'short_description' => 'required|max:200',
@@ -99,12 +112,52 @@ class PostController extends Controller
 
         $post->save();
 
-        return redirect()->route('posts.list')->with('success', 'Bài viết đã được tạo thành công.');
+        return redirect()->route('admin.posts.list')->with('success', 'Bài viết đã được tạo thành công.');
     }
     
     public function show(Post $post)
     {
-        $post->load(['category.parent', 'user']);
+        $viewed = session()->get('viewed_posts', []);
+
+        if (!in_array($post->id, $viewed)) {
+            $post->increment('views');
+            session()->push('viewed_posts', $post->id);
+        }
+
+        // Eager load relationships for performance
+        $post->load([
+            'category.parent', 
+            'user', 
+            'interactions',
+            // Load only top-level comments
+            'comments' => function ($query) {
+                $query->whereNull('parent_id')
+                      ->where(function ($q) {
+                          $q->where('status', 'approved');
+                          if (Auth::check()) {
+                              $q->orWhere(function ($subQuery) {
+                                  $subQuery->where('user_id', Auth::id())
+                                           ->whereIn('status', ['pending', 'rejected']);
+                              });
+                          }
+                      })
+                      ->with([
+                          'user', 
+                          'interactions', 
+                          'replies' => function($replyQuery) {
+                              $replyQuery->where('status', 'approved'); // Only approved replies for everyone
+                              if (Auth::check()) {
+                                  $replyQuery->orWhere(function ($subQuery) {
+                                      $subQuery->where('user_id', Auth::id())
+                                               ->whereIn('status', ['pending', 'rejected']);
+                                  });
+                              }
+                              $replyQuery->with('user', 'interactions', 'replies');
+                          }
+                      ])->orderBy('created_at', 'desc');
+            }
+        ]);
+
         $relatedPosts = Post::where('category_id', $post->category_id)
                             ->where('id', '!=', $post->id)
                             ->orderBy('created_at', 'desc')
@@ -116,12 +169,30 @@ class PostController extends Controller
 
     public function showForAdmin(Post $post)
     {
-        $post->load(['category.parent', 'user']);
+        Gate::authorize('manage-posts');
+
+        $post->load([
+            'category.parent', 
+            'user', 
+            'likes',
+            'dislikes',
+            'comments' => function ($query) {
+                $query->whereNull('parent_id')->with([
+                    'user', 
+                    'interactions', 
+                    'replies' => function($replyQuery) {
+                        $replyQuery->with('user', 'interactions', 'replies'); // Recursive load
+                    }
+                ])->orderBy('created_at', 'desc');
+            }
+        ]);
         return view('posts.show', compact('post'));
     }
 
     public function edit(Post $post)
     {
+        $this->authorize('update', $post);
+
         $categories = Category::whereNotNull('parent_id')->orderBy('name', 'asc')->get();
         return view('posts.edit', compact('post', 'categories'));
     }
@@ -131,6 +202,8 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        $this->authorize('update', $post);
+
         $validatedData = $request->validate([
             'title' => 'required|max:255',
             'short_description' => 'required',
@@ -188,21 +261,25 @@ class PostController extends Controller
 
         $post->save();
 
-        return redirect()->route('posts.list')->with('success', 'Bài viết đã được cập nhật thành công.');
+        return redirect()->route('admin.posts.list')->with('success', 'Bài viết đã được cập nhật thành công.');
     }
 
     public function destroy(Post $post)
     {
+        $this->authorize('delete', $post);
+
         if ($post->banner_image) { Storage::disk('public')->delete($post->banner_image); }
         if (is_array($post->gallery_images)) {
             foreach ($post->gallery_images as $image) { Storage::disk('public')->delete($image); }
         }
         $post->delete();
-        return redirect()->route('posts.list')->with('success', 'Bài viết đã được xóa thành công.');
+        return redirect()->route('admin.posts.list')->with('success', 'Bài viết đã được xóa thành công.');
     }
 
     public function bulkDestroy(Request $request)
     {
+        Gate::authorize('manage-posts');
+
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:posts,id',
@@ -216,11 +293,13 @@ class PostController extends Controller
             }
         }
         Post::destroy($postIds);
-        return redirect()->route('posts.list')->with('success', count($postIds) . ' bài viết đã được xóa thành công.');
+        return redirect()->route('admin.posts.list')->with('success', count($postIds) . ' bài viết đã được xóa thành công.');
     }
 
     public function exportPosts()
     {
+        Gate::authorize('manage-posts');
+
         return Excel::download(new PostsExport, 'danh-sach-bai-viet.xlsx');
     }
 }
