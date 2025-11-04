@@ -4,21 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Category;
+use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ContactFormMail;
 
 class UserDashboardController extends Controller
 {
     public function index()
     {
-        $trendingPosts = Post::with('category', 'user')->orderBy('created_at', 'desc')->take(3)->get();
-        $posts = Post::with('category', 'user')->orderBy('created_at', 'desc')->paginate(9);
+        $trendingPosts = Post::with(['category.parent', 'user' => fn($query) => $query->select('id', 'name')])->withCount('comments')->orderBy('created_at', 'desc')->take(3)->get();
+        $posts = Post::with(['category.parent', 'user' => fn($query) => $query->select('id', 'name')])->withCount('comments')->orderBy('created_at', 'desc')->paginate(9);
         $categories = Category::withCount('posts')->whereNull('parent_id')->orderBy('name', 'asc')->get();
 
-        $congNghePosts = Post::whereHas('category', function($q){
+        $congNghePosts = Post::with(['user' => fn($query) => $query->select('id', 'name'), 'category.parent'])->withCount('comments')->whereHas('category', function($q){
             $q->where('slug', 'cong-nghe')->orWhereHas('parent', fn($q) => $q->where('slug', 'cong-nghe'));
         })->latest()->take(3)->get();
         
-        $nganHangPosts = Post::whereHas('category', function($q){
+        $nganHangPosts = Post::with(['user' => fn($query) => $query->select('id', 'name'), 'category.parent'])->withCount('comments')->whereHas('category', function($q){
             $q->where('slug', 'ngan-hang')->orWhereHas('parent', fn($q) => $q->where('slug', 'ngan-hang'));
         })->latest()->take(3)->get();
 
@@ -46,8 +49,37 @@ class UserDashboardController extends Controller
     /**
      * Hiển thị trang liên hệ.
      */
-    public function contact()
+    public function contact(Request $request)
     {
-        return view('guest.contact');
+        $email = $request->query('email');
+        return view('guest.contact', ['email' => $email]);
+    }
+
+    /**
+     * Xử lý gửi form liên hệ.
+     */
+    public function sendContactEmail(Request $request)
+    {
+        $validatedData = $request->validate([
+            'full-name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone-number' => 'nullable|string|max:20',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        // Save to database
+        Contact::create([
+            'name' => $validatedData['full-name'],
+            'email' => $validatedData['email'],
+            'phone_number' => $validatedData['phone-number'] ?? null,
+            'subject' => $validatedData['subject'],
+            'message' => $validatedData['message'],
+        ]);
+
+        // Gửi email
+        Mail::to(config('mail.from.address'))->send(new ContactFormMail($validatedData));
+
+        return redirect()->route('guest.contact')->with('success', 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.');
     }
 }

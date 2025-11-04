@@ -59,15 +59,15 @@
                         <div>
                             <h5 class="font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Đăng ký nhận tin</h5>
                             <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">Nhận thông báo bài viết mới nhất qua email của bạn.</p>
-                            <form class="mt-4 flex" action="#">
-                                <label for="footer-email" class="sr-only">Email</label>
-                                <input type="email" id="footer-email" placeholder="Email của bạn"
+                            <div class="mt-4 flex">
+                                <label for="footer-email-input" class="sr-only">Email</label>
+                                <input type="email" id="footer-email-input" placeholder="Email của bạn"
                                        class="w-full text-sm rounded-l-md border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:bg-gray-700 dark:text-gray-200" required>
-                                <button type="submit"
+                                <button type="button" id="footer-subscribe-button"
                                         class="flex-shrink-0 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-r-md hover:bg-indigo-700 dark:hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
                                     Đăng ký
                                 </button>
-                            </form>
+                            </div>
                         </div>
 
                     </div>
@@ -81,3 +81,20 @@
                 </div>
             </footer>
             {{-- =============== KẾT THÚC FOOTER =============== --}}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const subscribeButton = document.getElementById('footer-subscribe-button');
+        const emailInput = document.getElementById('footer-email-input');
+
+        if (subscribeButton && emailInput) {
+            subscribeButton.addEventListener('click', function () {
+                const email = emailInput.value;
+                if (email) {
+                    // Chuyển hướng đến trang liên hệ với email là một query parameter
+                    window.location.href = `{{ route('guest.contact') }}?email=${encodeURIComponent(email)}`;
+                }
+            });
+        }
+    });
+</script>

@@ -31,7 +31,7 @@
                                 {{ __('Thêm danh mục mới') }}
                             </h3>
                             {{-- BỔ SUNG: Form tạo mới đã được tích hợp và sửa lỗi --}}
-                            <form id="create-category-form" method="POST" action="{{ route('categories.store') }}" enctype="multipart/form-data">
+                            <form id="create-category-form" method="POST" action="{{ route('admin.categories.store') }}" enctype="multipart/form-data">
                                 @csrf
 
                                 {{-- Tên danh mục --}}
@@ -109,20 +109,19 @@
                                 <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <a href="{{ route('posts.by_category', $parent->id) }}" class="flex items-center group">
+                                            <a href="{{ route('admin.posts.by_category', $parent->id) }}" class="flex items-center group">
                                                 <svg class="w-6 h-6 text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 mr-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                                                 <span class="font-semibold text-gray-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">{{ $parent->name }}</span>
                                             </a>
-                                            <span class="ml-2 text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full">{{ $parent->posts_count }} bài viết</span>
                                         </div>
                                         <div class="flex items-center space-x-2">
-                                            <a href="{{ route('categories.edit', $parent->id) }}" class="p-2 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                            <a href="{{ route('admin.categories.edit', $parent->id) }}" class="p-2 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
                                             </a>
                                             <button onclick="confirmDelete('{{ $parent->id }}')" class="p-2 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                                                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
                                             </button>
-                                            <form id="delete-form-{{ $parent->id }}" action="{{ route('categories.destroy', $parent->id) }}" method="POST" style="display: none;">
+                                            <form id="delete-form-{{ $parent->id }}" action="{{ route('admin.categories.destroy', $parent->id) }}" method="POST" style="display: none;">
                                                 @csrf
                                                 @method('DELETE')
                                             </form>
@@ -134,20 +133,20 @@
                                             @foreach ($parent->children as $child)
                                                 <div class="flex items-center justify-between">
                                                     <div class="flex items-center">
-                                                        <a href="{{ route('posts.by_category', $child->id) }}" class="flex items-center group">
+                                                        <a href="{{ route('admin.posts.by_category', $child->id) }}" class="flex items-center group">
                                                             <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 mr-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                             <span class="text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">{{ $child->name }}</span>
                                                         </a>
                                                         <span class="ml-2 text-xs bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full">{{ $child->posts->count() }} bài viết</span>
                                                     </div>
                                                     <div class="flex items-center space-x-2">
-                                                        <a href="{{ route('categories.edit', $child->id) }}" class="p-2 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                                        <a href="{{ route('admin.categories.edit', $child->id) }}" class="p-2 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
                                                         </a>
                                                         <button onclick="confirmDelete('{{ $child->id }}')" class="p-2 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
                                                         </button>
-                                                         <form id="delete-form-{{ $child->id }}" action="{{ route('categories.destroy', $child->id) }}" method="POST" style="display: none;">
+                                                         <form id="delete-form-{{ $child->id }}" action="{{ route('admin.categories.destroy', $child->id) }}" method="POST" style="display: none;">
                                                             @csrf
                                                             @method('DELETE')
                                                         </form>
